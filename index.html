@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#eeeee6">
+  <meta name="description" content="ハムスターと小さな街を歩く、Ayakaのポートフォリオ。自己紹介、チーム制作、個人制作、スキルとお問い合わせ。">
+  <title>Ayaka’s Little Town — Portfolio</title>
+  <link rel="stylesheet" href="style.css">
+  <script defer src="script.js"></script>
+  <script defer src="vendor/three.bundle.js"></script>
+  <script defer src="assets/hamster-data.js"></script>
+  <script defer src="world.js"></script>
+</head>
+<body>
+  <header class="masthead">
+    <a class="brand" href="./index.html" aria-label="Ayakaのポートフォリオ ホーム"><span class="brand-mark" aria-hidden="true">a.</span><span>AYAKA’S LITTLE TOWN<small>つくること、から始まる小さな街。</small></span></a>
+    <button class="reset" id="reset"><span aria-hidden="true">↺</span> はじめの位置</button>
+  </header>
+  <main>
+    <div class="introduction"><p class="eyebrow">A LITTLE WALK THROUGH MY PORTFOLIO</p><h1>ようこそ、<span>わたしの街へ。</span></h1><p>気になるおうちへ、ひと歩き。</p></div>
+    <section class="world" id="world" aria-label="4つの家がある円形の街">
+      <canvas id="town" tabindex="0" aria-label="ハムスターを操作。街をドラッグするか、矢印キーで歩けます。家のラベルからも内容を開けます。"></canvas>
+      <div id="labels" class="labels">
+        <button class="house-label" data-house="about"><span>01</span> 自己紹介 <i>↗</i></button>
+        <button class="house-label" data-house="team"><span>02</span> チーム制作作品 <i>↗</i></button>
+        <button class="house-label" data-house="projects"><span>03</span> 個人制作作品 <i>↗</i></button>
+        <button class="house-label" data-house="contact"><span>04</span> スキル / お問い合わせ <i>↗</i></button>
+      </div>
+      <p id="loading" class="loading" role="status">小さな街を準備しています…</p>
+      <span class="avatar-tag" id="avatar-tag" aria-hidden="true">YOU</span>
+      <span class="side-note" aria-hidden="true">SMALL STEPS, NEW POSSIBILITIES.</span>
+    </section>
+    <div class="walk-guide"><span class="gesture" aria-hidden="true">↗</span><p>ドラッグして、おさんぽ。<small>家に近づくと開きます。ラベルをタップしてもOK。</small></p><button id="help" class="help" aria-label="操作方法を開く">?</button></div>
+    <nav class="town-nav" aria-label="ポートフォリオメニュー">
+      <button data-house="about"><span>01</span> 自己紹介</button>
+      <button data-house="team"><span>02</span> チーム制作作品</button>
+      <button data-house="projects"><span>03</span> 個人制作作品</button>
+      <button data-house="contact"><span>04</span> スキル / お問い合わせ</button>
+    </nav>
+  </main>
+  <footer><p><span class="status-dot"></span><span id="walk-status" role="status">おさんぽ日和</span></p><span>© <span id="year">2026</span> Ayaka</span><p class="keyboard-hint">↑ ↓ ← → キーでも歩けます</p></footer>
+  <dialog id="panel" aria-labelledby="panel-title"><div class="panel-top"><span id="panel-kicker" class="eyebrow"></span><button class="close" id="close-panel" aria-label="閉じる">×</button></div><div id="panel-body"></div></dialog>
+  <noscript><p class="noscript">この街を歩くにはJavaScriptを有効にしてください。Ayakaのスキル：HTML、CSS、JavaScript、Python、C、C++。</p></noscript>
+</body>
+</html>
