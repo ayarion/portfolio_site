@@ -55,19 +55,20 @@ window.PORTFOLIO = {
   const state={t:0,phase:'loading',near:null,activeHouse:null,reduced:motion.matches};
   let targetT=null, expectedScroll=null, range=1, transitionGeneration=0, previousScroll=window.scrollY;
   let returnT=0, opener=null, outboundTimer=null, navigating=false, lastProject=null;
+  let introReady=false,hasWalked=false;
+  const introDeadline=performance.now()+4000,menu=$('#menu');
   const panel=$('#panel'),body=$('#panel-body'),prompt=$('#approach-prompt'),outbound=$('#outbound');
   const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const safeURL=value=>{try{const u=new URL(value);return /^https?:$/.test(u.protocol)?u.href:'';}catch{return ''}};
   const imageSource=src=>{
     if(typeof src!=='string'||!src)return '';
-    if(window.PORTFOLIO_SCREENSHOTS?.[src])return window.PORTFOLIO_SCREENSHOTS[src];
     try{const u=new URL(src,location.href);return /^(https?:|file:)$/.test(u.protocol)?u.href:''}catch{return ''}
   };
   const emit=(name,detail)=>window.dispatchEvent(new CustomEvent(name,{detail}));
   const announce=text=>{$('#announcement').textContent=text};
   function phase(value){
     state.phase=value;document.body.dataset.phase=value;
-    document.body.classList.toggle('is-locked',['entering','inside','leaving'].includes(value));
+    document.body.classList.toggle('is-locked',['entering','inside','leaving','menu'].includes(value));
     if(value!=='walking'){targetT=null;emit('town:clear-input');}
     emit('town:state',{...state});
   }
@@ -88,6 +89,7 @@ window.PORTFOLIO = {
   }
   function setProgress(value,source='input'){
     if(!Number.isFinite(value))return;
+    if(!hasWalked&&state.phase==='walking'&&['input','scroll'].includes(source)&&Math.abs(state.t-value)>.0001){hasWalked=true;$('#walk-instructions').classList.add('is-used');}
     state.t=Math.max(0,Math.min(1,value));
     if(source!=='scroll')writeScroll();
     updateProgressUI();emit('town:progress',{t:state.t,source});
@@ -121,26 +123,26 @@ window.PORTFOLIO = {
     updateProgressUI();emit('town:near',stop||null);
   }
   function ready(ok=true){
-    if(state.phase!=='loading')return;
-    phase('intro');$('#start-walk').disabled=false;
-    $('#start-walk').textContent=ok?'歩いてみる →':'メニューから見る →';
-    $('#loading-status').textContent=ok?'スクロールでも、ドラッグでも。':'3D表示を読み込めませんでした。メニューから全作品をご覧いただけます。';
+    introReady=true;
+    if(state.phase==='loading')phase('intro');
+    const enable=()=>{if(['loading','intro'].includes(state.phase)){$('#intro').setAttribute('aria-disabled','false');announce('クリックまたはEnterで街へ進めます。');}};
+    setTimeout(enable,Math.max(0,introDeadline-performance.now()));
   }
   function start(direct=false){
-    if(!['intro','loading'].includes(state.phase))return;
+    if(!['intro','loading'].includes(state.phase)||!introReady||performance.now()<introDeadline)return;
     const generation=++transitionGeneration;
-    $('#intro').classList.add('is-leaving');document.body.classList.remove('is-intro');
+    $('#intro').classList.add('is-leaving');document.body.classList.remove('is-intro');$('#journey').inert=false;
     phase('opening');refreshRange();setProgress(0,'start');emit('town:start');
     const finish=()=>{
       if(generation!==transitionGeneration)return;
       $('#intro').hidden=true;$('#wheel-host').hidden=true;phase('walking');
       if(!direct)$('#town').focus({preventScroll:true});
-      announce('道のはじまりです。縦スクロール、またはドラッグで歩けます。');
+      announce('道のはじまりです。縦スクロール、または進む方向を長押しして歩けます。');
     };
     if(state.reduced||direct)finish();else setTimeout(finish,800);
   }
   function requestHouse(id,trigger){
-    if(['loading','intro'].includes(state.phase))start(true);
+    if(state.phase==='menu')closeMenu(false);
     if(!['walking'].includes(state.phase))return;
     const stop=stops.find(s=>s.id===id);if(!stop)return;
     opener=trigger||document.activeElement;state.activeHouse=id;returnT=stop.t;
@@ -162,7 +164,7 @@ window.PORTFOLIO = {
       if(panel.open)panel.close();panel.classList.remove('is-leaving');
       setProgress(returnT,'return');state.activeHouse=null;phase('walking');
       $('#whiteout').classList.remove('is-active');
-      if(opener?.isConnected&&!opener.closest('[inert]'))opener.focus({preventScroll:true});else $('#town').focus({preventScroll:true});
+      if(opener?.isConnected&&!opener.closest('[inert],dialog:not([open])'))opener.focus({preventScroll:true});else $('#town').focus({preventScroll:true});
       announce('家の前に戻りました。');
     };
     if(state.reduced){finish();return}
@@ -180,13 +182,13 @@ window.PORTFOLIO = {
       html+='<p>気になる作品を選んでください。</p><div class="project-list">'+(items.length?items.map(p=>'<button class="project-row" data-project="'+escape(p.id)+'">'+thumbnail(p)+'<span><strong>'+escape(p.title)+'</strong><small>'+ (id==='team'?'チーム制作':'個人制作')+'</small></span><span aria-hidden="true">↗</span></button>').join(''):'<p>作品を準備しています。</p>')+'</div>';
     }
     if(id==='contact')html+='<h3>使えるスキル</h3><div class="badge-list">'+data.skills.map(s=>'<span class="badge">'+escape(s)+'</span>').join('')+'</div><h3>お問い合わせ</h3><p>制作のご相談やご連絡は、こちらから。</p>'+(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)?'<a class="action primary" href="mailto:'+encodeURIComponent(data.email)+'">メールで問い合わせる ↗</a>':'<button class="action" disabled>お問い合わせ · 準備中</button>');
-    if(id==='help')html+='<p>ページを下へスクロールすると、ハムスターが道を進みます。上へスクロールすると戻ります。</p><p>マウスは街を押したままドラッグ。スマホは「ドラッグで歩く」ボタンやハムスターの下の ↕ を押したまま上下へ引っ張れます。画面のそれ以外の場所は通常の縦スクロールです。</p><p>矢印キーでも歩けます。家に近づくと「入る」が現れます。クリック、Enter、スペースで決定して初めて開きます。Escapeで家の前に戻ります。</p><p>動きを減らす設定では、ズームや自動スクロール、回し車の待ち時間を省き、位置を瞬時に切り替えます。</p>';
+    if(id==='help')html+='<p>下へスクロールすると進み、上へスクロールすると戻ります。</p><p>進みたい方向を長押ししている間だけ歩きます。指やマウスを離すと止まります。スマホは画面をそのまま縦スクロールでき、右下の ↑ ↓ を長押しする操作も使えます。</p><p>矢印キーでも歩けます。家に近づくとカメラが寄り、「入る」が現れます。クリック、Enter、スペースで決定すると開き、Escapeで家の前に戻ります。</p><p>動きを減らす設定では、ズームや自動スクロール、回し車の待ち時間を省きます。</p>';
     body.innerHTML=html;wireImageFallbacks();
   }
   function socialLink(label,url){return safeURL(url)?'<a class="action" href="'+escape(safeURL(url))+'" target="_blank" rel="noopener noreferrer">'+label+' ↗</a>':'<button class="action" disabled>'+label+' · 準備中</button>';}
   function thumbnail(p){
     const image=p.screenshots?.[0],src=imageSource(image?.src);
-    return src?'<img class="project-thumb" src="'+escape(src)+'" alt="'+escape(image.alt||p.title+'の画面')+'" width="88" height="100" data-image-fallback="'+escape(p.title)+'">':'<span class="project-thumb thumb-placeholder">'+escape(p.title)+'</span>';
+    return src?'<img class="project-thumb" loading="lazy" decoding="async" src="'+escape(src)+'" alt="'+escape(image.alt||p.title+'の画面')+'" width="88" height="100" data-image-fallback="'+escape(p.title)+'">':'<span class="project-thumb thumb-placeholder">'+escape(p.title)+'</span>';
   }
   function findProject(id){return [...data.projects,...data.teamProjects].find(p=>p.id===id)}
   function detail(id){
@@ -194,7 +196,7 @@ window.PORTFOLIO = {
     const team=data.teamProjects.includes(p),back=team?'team':'projects',url=safeURL(p.url);
     let gallery=(p.screenshots||[]).map((im,i)=>{
       const source=imageSource(im.src);
-      return '<figure>'+(source?'<img src="'+escape(source)+'" alt="'+escape(im.alt||p.title+'の画面 '+(i+1))+'" width="540" height="960" data-image-fallback="'+escape(p.title)+'">':'<div class="screenshot-placeholder">'+escape(p.title)+'<br>画像を準備中</div>')+'<figcaption>'+escape(im.alt||p.title+' / '+(i+1))+'</figcaption></figure>';
+      return '<figure>'+(source?'<img loading="lazy" decoding="async" src="'+escape(source)+'" alt="'+escape(im.alt||p.title+'の画面 '+(i+1))+'" width="540" height="960" data-image-fallback="'+escape(p.title)+'">':'<div class="screenshot-placeholder">'+escape(p.title)+'<br>画像を準備中</div>')+'<figcaption>'+escape(im.alt||p.title+' / '+(i+1))+'</figcaption></figure>';
     }).join('');
     if(!gallery)gallery='<figure><div class="screenshot-placeholder">'+escape(p.title)+'<br>画像を準備中</div></figure>';
     body.innerHTML='<button class="back" data-back="'+back+'">← 作品一覧に戻る</button><div class="project-title-line"><h2 id="panel-title">'+escape(p.title)+'</h2>'+(url?'<a class="action primary" data-outbound="'+escape(p.id)+'" href="'+escape(url)+'">'+(team?'確認して作品を開く':'作品を開く')+' ↗</a>':'<button class="action" disabled>作品リンク · 準備中</button>')+'</div>'+(team&&url?'<p class="team-notice">外部サイト（'+escape(new URL(url).hostname)+'）へ移動します。「確認して作品を開く」で、このタブに作品ページを開きます。</p>':'')+'<div class="screenshot-gallery">'+gallery+'</div><p class="project-description">'+escape(p.description)+'</p>';
@@ -223,16 +225,23 @@ window.PORTFOLIO = {
     outboundTimer=setTimeout(go,1050);
   }
   $('#wheel-slot').append($('#wheel-host'));
-  $('#start-walk').addEventListener('click',()=>start());
-  $('#intro-menu-link').addEventListener('click',()=>{start(true);$('#menu').querySelector('button').focus({preventScroll:true})});
-  $('.skip-link').addEventListener('click',e=>{e.preventDefault();start(true);$('#menu').querySelector('button').focus({preventScroll:true})});
-  $('#reset').addEventListener('click',()=>{if(state.phase==='walking'){targetT=null;nearHouse(null);setProgress(0,'reset');emit('town:clear-input');announce('道のはじまりに戻りました。')}});
+  $('#intro').addEventListener('click',()=>start());
+  $('#intro').addEventListener('keydown',e=>{if(['Enter',' '].includes(e.key)){e.preventDefault();start();}});
+  function openMenu(){if(state.phase!=='walking')return;nearHouse(null);phase('menu');menu.showModal();$('#menu-toggle').setAttribute('aria-expanded','true');$('#close-menu').focus({preventScroll:true});}
+  function closeMenu(focus=true){if(!menu.open)return;menu.close();$('#menu-toggle').setAttribute('aria-expanded','false');phase('walking');if(focus)$('#menu-toggle').focus({preventScroll:true});}
+  $('#menu-toggle').addEventListener('click',openMenu);
+  $('#close-menu').addEventListener('click',()=>closeMenu());
+  menu.addEventListener('cancel',e=>{e.preventDefault();closeMenu()});
+  menu.addEventListener('click',e=>{if(e.target===menu){const r=menu.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)closeMenu();}});
+  $('.skip-link').addEventListener('click',e=>{e.preventDefault();openMenu()});
+  $('#reset').addEventListener('click',()=>{if(state.phase==='menu')closeMenu(false);if(state.phase==='walking'){targetT=null;nearHouse(null);setProgress(0,'reset');emit('town:clear-input');$('#town').focus({preventScroll:true});announce('道のはじまりに戻りました。')}});
   $('#enter-house').addEventListener('click',()=>{if(state.near)requestHouse(state.near,$('#town'))});
   $('#close-panel').addEventListener('click',closePanel);
   panel.addEventListener('cancel',e=>{e.preventDefault();closePanel()});
   panel.addEventListener('click',e=>{if(e.target!==panel)return;const r=panel.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)closePanel()});
   outbound.addEventListener('cancel',e=>{e.preventDefault();restoreWheel()});
   $('#help').addEventListener('click',e=>{
+    if(state.phase==='menu')closeMenu(false);
     if(state.phase!=='walking')return;opener=e.currentTarget;returnT=state.t;state.activeHouse=null;
     nearHouse(null);phase('inside');renderSection('help');panel.showModal();$('#close-panel').focus({preventScroll:true});
   });
@@ -243,11 +252,22 @@ window.PORTFOLIO = {
     const a=e.target.closest('[data-outbound]');if(a&&!e.metaKey&&!e.ctrlKey&&!e.shiftKey&&!e.altKey&&e.button===0){e.preventDefault();followLink(findProject(a.dataset.outbound))}
   });
   document.addEventListener('keydown',e=>{
+    if(e.key==='Tab'){
+      const dialog=outbound.open?outbound:panel.open?panel:menu.open?menu:null;
+      if(dialog){
+        const controls=[...dialog.querySelectorAll('button:not(:disabled),a[href],input:not(:disabled),textarea:not(:disabled),select:not(:disabled),[tabindex="0"]')].filter(el=>el.getClientRects().length);
+        const first=controls[0],last=controls.at(-1),active=document.activeElement;
+        if(!first){e.preventDefault();dialog.tabIndex=-1;dialog.focus({preventScroll:true});}
+        else if(!dialog.contains(active)||(e.shiftKey&&active===first)||(!e.shiftKey&&active===last)){e.preventDefault();(e.shiftKey?last:first).focus({preventScroll:true});}
+      }
+      return;
+    }
+    if(['loading','intro'].includes(state.phase)&&['Enter',' '].includes(e.key)){e.preventDefault();start();return;}
     if(e.key==='Escape'&&state.phase==='entering'){e.preventDefault();closePanel();return;}
     if(e.repeat||state.phase!=='walking'||!state.near||!['Enter',' '].includes(e.key))return;
     // Enter on another interactive control keeps its ordinary button/link behavior.
     const target=e.target;
-    if(target instanceof Element&&target.closest('button,a,input,textarea,select')&&!['enter-house','drag-walk','avatar-handle'].includes(target.id))return;
+    if(target instanceof Element&&target.closest('button,a,input,textarea,select')&&!['enter-house','walk-forward','walk-back'].includes(target.id))return;
     e.preventDefault();requestHouse(state.near,target);
   });
   window.addEventListener('scroll',()=>{
@@ -273,7 +293,8 @@ window.PORTFOLIO = {
     if(state.phase==='opening'){$('#intro').hidden=true;$('#wheel-host').hidden=true;phase('walking');}
     emit('town:motion',{reduced:state.reduced});
   });
-  refreshRange();updateProgressUI();setTimeout(()=>ready(false),12000);
+  // Native dialogs trap focus. Intro has one focusable control and no hidden-menu escape.
+  $('#journey').inert=true;refreshRange();updateProgressUI();
   window.TownState={
     stops,
     get snapshot(){return Object.freeze({...state})},
