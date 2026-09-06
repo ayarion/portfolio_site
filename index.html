@@ -36,7 +36,9 @@
   </header>
   <main id="journey">
     <section class="world" id="world" aria-label="水色の一本道に沿って4つの家を巡る街">
-      <canvas id="town" tabindex="0" aria-describedby="walk-instructions" aria-label="ハムスターの街。進む方向を長押し、矢印キー、または縦スクロールで歩けます。"></canvas>
+      <canvas id="town" tabindex="0" aria-describedby="walk-instructions" aria-label="ハムスターの街。押してパッドを引くと歩きます。矢印キー、スクロールも使えます。スマホの縦スクロールは右端から。"></canvas>
+      <div id="walk-pad" class="walk-pad" aria-hidden="true"><span class="walk-pad-knob"></span></div>
+      <div class="scroll-lane" aria-hidden="true"></div>
       <div class="approach-prompt" id="approach-prompt" aria-hidden="true" inert>
         <button id="enter-house"><span id="enter-label">家に入る</span><span aria-hidden="true">↗</span></button>
         <small>クリック / Enter / スペース</small>
@@ -47,7 +49,7 @@
   </main>
   <aside class="walk-controls" aria-label="街の操作">
     <div class="journey-progress"><span id="current-stop">道のはじまり</span><span id="progress-text">0%</span><div class="progress-track" aria-hidden="true"><span id="progress-fill"></span></div></div>
-    <p class="walk-instructions" id="walk-instructions">スクロール、または進む方向を長押し。</p>
+    <p class="walk-instructions" id="walk-instructions">押して、進みたい方向へ引く。<small>スクロールでも歩けます · スマホは画面の右端から</small></p>
     <div class="walk-actions"><button id="walk-back" class="hold-walk" data-direction="-1" aria-label="長押しして戻る">↑</button><button id="walk-forward" class="hold-walk" data-direction="1" aria-label="長押しして進む">↓</button></div>
   </aside>
   <dialog class="town-nav" id="menu" aria-labelledby="menu-title"><div class="menu-heading"><h2 id="menu-title">Portfolio</h2><button id="close-menu" class="close" aria-label="メニューを閉じる">×</button></div><nav aria-label="ポートフォリオの各ページを直接開く">

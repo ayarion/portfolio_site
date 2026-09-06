@@ -12,6 +12,8 @@
   // 接近ズームの調整はここだけ。1 = 通常、1.35 = 家・庭・ハムスターを一緒に見せる。
   const APPROACH_ZOOM=1.35;
   const CAMERA_OFFSET=new T.Vector3(9,14,18);
+  // 幅ごとに独立調整：half=正投影の横半幅、ahead=道の先を見る量、house=接近時の家への重み。
+  const CAMERA_PROFILES={phone:{half:7.1,ahead:.07,house:.72,approach:.85,offset:[0,14,22]},tablet:{half:8.4,ahead:.05,house:.60,approach:.90,offset:[3,14,21]},desktop:{half:null,ahead:0,house:.40,approach:1,offset:[9,14,18]}};
   try {
     const palette={
       ground:0xe9ecee,road:0x49bde9,roadEdge:0xd6f1fc,white:0xfffdf6,
@@ -238,57 +240,67 @@
     const avatar=new T.Group();avatar.name='RoadAvatar';scene.add(avatar);avatar.visible=false;
     const ring=new T.Mesh(new T.RingGeometry(.37,.39,40),new T.MeshBasicMaterial({color:palette.blue,transparent:true,opacity:.9,side:T.DoubleSide}));ring.rotation.x=-Math.PI/2;scene.add(ring);
     const camera=new T.OrthographicCamera(-12,12,10,-10,.1,150);
-    const cameraOffset=CAMERA_OFFSET;
+    const cameraOffset=CAMERA_OFFSET.clone();
     let cameraFocus=path.getPointAt(0),openingStart=null,model=null,lastT=0,elapsed=0,frameId,gait=null;
     let nearTime=0,lastError=null,contextLost=false;
-    let gesture=null,pendingTouch=null,keys=new Set(),zoom=1,activeNear=null,environmentDim=0;
+    let gesture=null,keys=new Set(),zoom=1,activeNear=null,environmentDim=0,profile=CAMERA_PROFILES.desktop;
+    const pad=$('#walk-pad'),knob=pad.querySelector('.walk-pad-knob'),PAD_RADIUS=38,DEAD_ZONE=5;
     let width=1,height=1;const clock=new T.Clock();
-    const groundPlane=new T.Plane(new T.Vector3(0,1,0),0),raycaster=new T.Raycaster();
     const prompt=$('#approach-prompt');
 
     function resize(){
       width=Math.max(1,container.clientWidth||window.innerWidth);height=Math.max(1,container.clientHeight||window.innerHeight);
       renderer.setSize(width,height,false);
-      // 縦長画面でも家の横幅とアバターを切らない、正投影の基本視野。
-      const aspect=width/Math.max(1,height),half=width<700?9.6:Math.max(9.8,aspect*7.5);
+      const key=width<=480?'phone':width<1024?'tablet':'desktop';profile=CAMERA_PROFILES[key];
+      const aspect=width/Math.max(1,height),half=profile.half??Math.max(9.8,aspect*7.5);
+      canvas.dataset.cameraProfile=key;
+      cameraOffset.fromArray(profile.offset);
       houses.forEach(h=>h.sign.scale.setScalar(1));
       camera.left=-half;camera.right=half;camera.top=half/aspect;camera.bottom=-half/aspect;camera.updateProjectionMatrix();
     }
     const resizeObserver=new ResizeObserver(resize);resizeObserver.observe(container);resize();
-    function nearestT(point){let distance=Infinity,best=0;for(let i=0;i<samples.length;i++){const d=(samples[i].x-point.x)**2+(samples[i].z-point.z)**2;if(d<distance){distance=d;best=i/500;}}return best;}
-    function pointerDirection(e,g){
-      if(g.mode==='control')return Number(g.target.dataset.direction);
-      const r=canvas.getBoundingClientRect();raycaster.setFromCamera(new T.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1),g.camera);
-      const p=new T.Vector3();return raycaster.ray.intersectPlane(groundPlane,p)?Math.sign(nearestT(p)-controller.snapshot.t):0;
+    function clearWalkSelection(){
+      const selection=window.getSelection();
+      if(selection&&[selection.anchorNode,selection.focusNode].some(n=>n&&(n.nodeType===1?n:n.parentElement)?.closest?.('#town,.walk-controls,.walk-pad,.scroll-lane')))selection.removeAllRanges();
     }
-    function begin(e,mode,heldTouch=false){
-      if(controller.snapshot.phase!=='walking'||gesture||e.button!==0)return;
-      if(mode==='canvas'&&e.pointerType==='touch'&&!heldTouch){
-        // A short hold claims walking; moving first leaves native vertical scrolling intact.
-        const held={pointerId:e.pointerId,pointerType:e.pointerType,button:e.button,clientX:e.clientX,clientY:e.clientY,currentTarget:canvas,preventDefault(){}};
-        pendingTouch={x:e.clientX,y:e.clientY,timer:setTimeout(()=>{pendingTouch=null;begin(held,mode,true)},220)};return;
-      }
+    function updatePad(e){
+      const g=gesture;if(!g)return;
+      const dx=e.clientX-g.x,dy=e.clientY-g.y,d=Math.hypot(dx,dy),scale=d>PAD_RADIUS?PAD_RADIUS/d:1;
+      knob.style.transform='translate('+dx*scale+'px,'+dy*scale+'px)';
+      // 押した瞬間の道の向きを固定。カメラ追従やアバター位置で符号を反転させない。
+      const along=(dx*g.forward.x+dy*g.forward.y)*scale;
+      g.direction=Math.sign(along)*Math.max(0,(Math.abs(along)-DEAD_ZONE)/(PAD_RADIUS-DEAD_ZONE));
+      if(controller.snapshot.reduced&&Math.abs(g.direction)>.15&&!g.stepped){controller.move(controller.snapshot.t+Math.sign(g.direction)*.025);g.stepped=true;}
+    }
+    function begin(e,mode){
+      if(controller.snapshot.phase!=='walking'||gesture||e.button!==0||e.isPrimary===false)return;
       const target=e.currentTarget;
-      gesture={id:e.pointerId,target,mode,x:e.clientX,y:e.clientY,t:controller.snapshot.t,camera:camera.clone()};
-      gesture.direction=pointerDirection(e,gesture);
+      const t=controller.snapshot.t,p=path.getPointAt(t),a=p.clone().project(camera),b=p.clone().add(path.getTangentAt(t)).project(camera);
+      const forward=new T.Vector2((b.x-a.x)*width,-(b.y-a.y)*height).normalize();
+      gesture={id:e.pointerId,target,mode,x:e.clientX,y:e.clientY,forward,direction:mode==='control'?Number(target.dataset.direction):0};
+      pad.style.left=e.clientX+'px';pad.style.top=e.clientY+'px';knob.style.transform='translate(0,0)';pad.classList.add('is-active');container.classList.add('is-steering');
+      clearWalkSelection();
       target.setPointerCapture?.(e.pointerId);
       if(mode==='canvas')canvas.focus({preventScroll:true});
       if(controller.snapshot.reduced)controller.move(controller.snapshot.t+gesture.direction*.025);
       e.preventDefault();
     }
-    function move(e){if(pendingTouch&&Math.hypot(e.clientX-pendingTouch.x,e.clientY-pendingTouch.y)>8){clearTimeout(pendingTouch.timer);pendingTouch=null;}if(gesture?.id===e.pointerId){gesture.direction=pointerDirection(e,gesture);e.preventDefault();}}
-    function end(e){if(pendingTouch){clearTimeout(pendingTouch.timer);pendingTouch=null;}if(gesture?.id!==e.pointerId)return;releaseGesture(true);}
+    function move(e){if(gesture?.id!==e.pointerId)return;if(e.pointerType==='mouse'&&!(e.buttons&1)){releaseGesture();return;}if(gesture.mode==='canvas')updatePad(e);clearWalkSelection();e.preventDefault();}
+    function end(e){if(gesture?.id===e.pointerId)releaseGesture(true);}
     function releaseGesture(cancel=true){
-      if(pendingTouch){clearTimeout(pendingTouch.timer);pendingTouch=null;}
       if(gesture){const g=gesture;gesture=null;if(g.target.hasPointerCapture?.(g.id))g.target.releasePointerCapture(g.id);}
+      pad.classList.remove('is-active');container.classList.remove('is-steering');
       if(cancel)controller.clearIntent();
     }
     [canvas,$('#walk-forward'),$('#walk-back')].forEach(el=>{
       el.addEventListener('pointerdown',e=>begin(e,el===canvas?'canvas':'control'));
       el.addEventListener('pointermove',move);el.addEventListener('pointerup',end);
-      el.addEventListener('pointercancel',()=>releaseGesture(true));
-      el.addEventListener('lostpointercapture',()=>{if(gesture)releaseGesture(true)});
-    });
+        el.addEventListener('pointercancel',end);el.addEventListener('lostpointercapture',end);
+        ['contextmenu','dragstart','selectstart'].forEach(type=>el.addEventListener(type,e=>{e.preventDefault();clearWalkSelection()}));
+      });
+      window.addEventListener('pointerup',end);window.addEventListener('pointercancel',end);
+      [prompt,$('.scroll-lane')].forEach(el=>['contextmenu','dragstart','selectstart'].forEach(type=>el.addEventListener(type,e=>e.preventDefault())));
+      window.addEventListener('resize',()=>clearInput());
     document.addEventListener('keydown',e=>{
       if(controller.snapshot.phase!=='walking'||!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key))return;
       if(e.target.closest?.('input,textarea,select,[data-house]'))return;
@@ -359,11 +371,11 @@
       mat.color.copy(base).lerp(new T.Color(gray*.84,gray*.87,gray*.89),amount);
     }
     function frame(){
-      frameId=requestAnimationFrame(frame);const dt=Math.min(clock.getDelta(),.045);if(document.hidden||contextLost)return;
+      frameId=requestAnimationFrame(frame);const dt=Math.min(clock.getDelta(),.25);if(document.hidden||contextLost)return;
       try{
       const s=controller.snapshot;
       if(s.phase==='walking'&&gesture&&!s.reduced)controller.move(s.t+gesture.direction*dt*.08);
-      if(s.phase==='walking'&&keys.size){
+        if(s.phase==='walking'&&keys.size&&!gesture){
         const direction=Number(keys.has('ArrowDown')||keys.has('ArrowRight'))-Number(keys.has('ArrowUp')||keys.has('ArrowLeft'));
         controller.move(s.t+direction*dt*.08);
       }
@@ -384,9 +396,16 @@
         controller.setNear(activeNear&&(state.reduced||nearTime>.6)?activeNear:null);
       }else{activeNear=null;controller.setNear(null);}
       const focused=houses.find(h=>h.id===(activeNear||state.activeHouse));
-      let focus=p.clone();focus.y=.5;
-      if(focused&&!state.reduced)focus.lerp(focused.group.position.clone().setY(1.8),.40);
-      const desiredZoom=focused&&!state.reduced?APPROACH_ZOOM:1;
+        let focus=p.clone();focus.y=.5;
+        // 横方向だけ道の先へ寄せる。デスクトップの従来画角は変えない。
+        if(profile.ahead){
+          focus=path.getPointAt(Math.min(1,t+profile.ahead));focus.y=.5;
+          const right=new T.Vector3(cameraOffset.z,0,-cameraOffset.x).normalize(),values=[];
+          for(let i=0;i<=20;i++)values.push(path.getPointAt(Math.min(1,t+i*.015)).dot(right));
+          focus.addScaledVector(right,(Math.min(...values)+Math.max(...values))/2-focus.dot(right));
+        }
+        if(focused&&!state.reduced)focus.lerp(focused.group.position.clone().setY(1.8),profile.house);
+        const desiredZoom=focused&&!state.reduced?APPROACH_ZOOM*profile.approach:1;
       let opening=1;
       if(['loading','intro'].includes(state.phase)){
         focus=path.getPointAt(.2);focus.y=.7;zoom=.48;avatar.visible=false;opening=0;

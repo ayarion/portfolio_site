@@ -137,7 +137,7 @@ window.PORTFOLIO = {
       if(generation!==transitionGeneration)return;
       $('#intro').hidden=true;$('#wheel-host').hidden=true;phase('walking');
       if(!direct)$('#town').focus({preventScroll:true});
-      announce('道のはじまりです。縦スクロール、または進む方向を長押しして歩けます。');
+      announce('道のはじまりです。押してパッドを引くと歩きます。スクロールでも進めます。スマホは右端から縦スクロールできます。');
     };
     if(state.reduced||direct)finish();else setTimeout(finish,800);
   }
@@ -182,7 +182,7 @@ window.PORTFOLIO = {
       html+='<p>気になる作品を選んでください。</p><div class="project-list">'+(items.length?items.map(p=>'<button class="project-row" data-project="'+escape(p.id)+'">'+thumbnail(p)+'<span><strong>'+escape(p.title)+'</strong><small>'+ (id==='team'?'チーム制作':'個人制作')+'</small></span><span aria-hidden="true">↗</span></button>').join(''):'<p>作品を準備しています。</p>')+'</div>';
     }
     if(id==='contact')html+='<h3>使えるスキル</h3><div class="badge-list">'+data.skills.map(s=>'<span class="badge">'+escape(s)+'</span>').join('')+'</div><h3>お問い合わせ</h3><p>制作のご相談やご連絡は、こちらから。</p>'+(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)?'<a class="action primary" href="mailto:'+encodeURIComponent(data.email)+'">メールで問い合わせる ↗</a>':'<button class="action" disabled>お問い合わせ · 準備中</button>');
-    if(id==='help')html+='<p>下へスクロールすると進み、上へスクロールすると戻ります。</p><p>進みたい方向を長押ししている間だけ歩きます。指やマウスを離すと止まります。スマホは画面をそのまま縦スクロールでき、右下の ↑ ↓ を長押しする操作も使えます。</p><p>矢印キーでも歩けます。家に近づくとカメラが寄り、「入る」が現れます。クリック、Enter、スペースで決定すると開き、Escapeで家の前に戻ります。</p><p>動きを減らす設定では、ズームや自動スクロール、回し車の待ち時間を省きます。</p>';
+    if(id==='help')html+='<p>道を押すと丸いパッドが現れます。そのまま進みたい方向へ引くと歩き、中心から遠く引くほど速くなります。離すと止まります。</p><p>マウスホイールでも歩けます。スマホの縦スクロールは画面右端の細い領域から。右下の ↑ ↓ の長押しや、矢印キーも使えます。</p><p>家に近づくとカメラが寄り、「入る」が現れます。クリック、Enter、スペースで決定すると開き、Escapeで家の前に戻ります。</p><p>動きを減らす設定では、パッドを引くたびに一歩ずつ移動し、ズームや自動スクロールを省きます。</p>';
     body.innerHTML=html;wireImageFallbacks();
   }
   function socialLink(label,url){return safeURL(url)?'<a class="action" href="'+escape(safeURL(url))+'" target="_blank" rel="noopener noreferrer">'+label+' ↗</a>':'<button class="action" disabled>'+label+' · 準備中</button>';}
