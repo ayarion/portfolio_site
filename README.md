@@ -1,52 +1,71 @@
-# Ayaka’s Little Town
+# Ayaka’s Little Walk
 
-`index.html` をダブルクリックすると、ビルド・インストール不要で開けます。Chrome、Edge、Safariなど、WebGLに対応した現行ブラウザーでご利用ください。
+水色のS字の道をハムスターと歩くポートフォリオです。
+`index.html` をダブルクリックすれば、インストール・ビルド・サーバー不要で開けます。Three.jsと画像・モデルはすべて同梱しています。
 
 ## 操作
 
-- 街を押したままドラッグ／タッチするとハムスターが追従します。離した位置まで歩きます。
-- 家の正面の入口に近づくと内容が開きます。
-- 家のラベルと下部メニューからも直接開けます。
-- 街を選択した状態で矢印キーでも歩けます。Escapeでパネルを閉じます。
-- 「はじめの位置」で中央に戻ります。
+- 「歩いてみる」でスタート。縦スクロールで前後に歩き、カメラも追従します。
+- マウスは街を押したままドラッグすると、離した位置まで歩きます。
+- スマホは画面上を縦スクロール。「ドラッグで歩く」ボタン、またはハムスターの下の ↕ を引っ張る操作も使えます。
+- 矢印キーでも歩けます。家に近づくだけでは中身は開きません。プロンプトのクリック、Enter、スペースで入ります。
+- Escapeまたは閉じるボタンで、その家の前へ戻ります。
+- 下部のテキストメニューから、各セクションを直接開けます。
+- チーム作品は詳細画面で遷移先を確認してから開きます。作品リンクは紙の回し車を最大1.05秒表示し、同じタブで移動します。Escapeで待機中の遷移を中止できます。
+- OSの「動きを減らす」設定では、位置が瞬時に切り替わり、自動スクロール・ズーム・外部リンクの待ち時間を省きます。
 
-## 内容を差し替える
+## 後から差し替える箇所
 
-`script.js` 冒頭の `window.PORTFOLIO` を編集してください。コメント `TODO` が差し替え箇所です。
+`script.js` 冒頭の `window.PORTFOLIO` にまとめています。`TODO` コメントが目印です。
 
-|項目|設定|
-|名前・紹介|`name`、`bio`|
-|GitHub・X|`github`、`x` にプロフィールの https URL|
-|チーム制作|`teamUrl` にメルカリのハッカソン作品URL|
-|メール|`email` にメールアドレス。メールアプリを開くリンクです|
-|個人制作|`projects` 配列。作品の追加・削除・順序変更が可能|
+|内容|編集する項目|
+|---|---|
+|名前・自己紹介・SNS|`name` / `bio` / `github` / `x`|
+|個人制作作品|`projects` 配列。togame、OjiMate、Kinto-Log|
+|チーム制作作品|`teamProjects` 配列。mersampo。今後の作品も追加可能|
+|各作品の説明|各作品の `description`。現在は「作品の説明を準備中です。」|
+|各作品のリンク|各作品の `url`。空欄なら準備中|
+|各作品の画像|各作品の `screenshots: [{src, alt}]`。先頭が一覧と回し車の代表画面|
+|メールアドレス|`email`。空欄の間はお問い合わせを「準備中」と表示|
 |スキル|`skills` 配列|
 
-各作品は `id`、`title`、`category`、`description`、`url`、`image`、`skills` を持ちます。`image` に `assets/project-01.jpg` などを設定し、画像をassetsフォルダーに入れてください。URL・メールが空の項目は「準備中」になります。チーム作品への遷移は、確認パネルの「作品ページへ進む」を選んだときだけ実行されます。
+画像は `assets/screenshots/` にあります。添付された10枚を使用しています。
 
-## ファイル
+- `togame-01.png`、`togame-02.png`
+- `ojimate-01.png`
+- `kinto-log-01.jpg`、`kinto-log-02.jpg`、`kinto-log-03.jpg`
+- `mersampo-01.png` ～ `mersampo-04.png`
 
-- `index.html`：ページとパネルの骨組み
-- `style.css`：配色、配置、レスポンシブ表示、開閉アニメーション
-- `script.js`：編集用データとパネル・作品一覧
-- `world.js`：街、家、座標、入力処理、接近判定
-- `vendor/three.bundle.js`：Three.js 0.169.0とGLTFLoaderの同梱版
-- `vendor/THREE-LICENSE.txt`：Three.jsのMITライセンス
-- `assets/hamster.glb`：お預かりした3Dモデル
-- `assets/hamster-data.js`：同じモデルを直接開くために埋め込んだデータ
-
-家の位置は `world.js` の `HOUSES`（x、z、labelY）、接近のしきい値は `ENTRY_RADIUS` で調整できます。ハムスターを別のGLBに交換する場合は、元ファイルと埋め込みデータの両方を更新してください。
+画像を交換・追加したら、`script.js` の `src` と `alt` を更新し、次を一度実行してください。同じファイル名で画像を交換した場合も必要です。説明文だけの変更では不要です。
 
 ```powershell
-node -e "const fs=require('fs');fs.writeFileSync('assets/hamster-data.js','window.HAMSTER_GLB='+JSON.stringify(fs.readFileSync('assets/hamster.glb').toString('base64'))+';')"
+node update-assets.cjs
 ```
 
-この変換だけはNode.jsを使用します。通常の内容編集や閲覧には不要です。
+これで `assets/screenshots-data.js` と `assets/hamster-data.js` を再生成します。埋め込みデータを直接編集する必要はありません。画像が無い作品は `screenshots: []` にすると作品名の紙カードになります。読込に失敗した画像も同様に準備中表示へ切り替わります。
 
-## サーバーへの設置
+## ファイル構成
 
-index.html、style.css、script.js、world.js、assets、vendorを同じ階層構造でアップロードしてください。フォームの送信サーバーは使用しません。既存のtsukuriba.orgへの反映・DNS変更は、この納品には含めていません。
+- `index.html`：導入、キャンバス、操作メニュー、ダイアログ
+- `style.css`：配色、レイアウト、スマホ対応、フェード
+- `script.js`：編集用データ、単一の進行度 `t`、画面遷移、外部リンク
+- `world.js`：S字の道、家、木製看板、カメラ、入力、紙の回し車
+- `vendor/three.bundle.js`：Three.js 0.169.0とGLTFLoaderの同梱版
+- `vendor/THREE-LICENSE.txt`：Three.jsのMITライセンス
+- `assets/hamster.glb`：お預かりしたハムスター
+- `update-assets.cjs`：オフライン用画像・モデルの埋め込み更新
+- `build.cjs`：埋め込み更新と `dist/` へのコピー
+
+家の順序と位置は `script.js` の `stops`（道上の進行度 `t`）、道の形は `world.js` の `PATH_POINTS` で調整できます。接近判定は進行度差 .029、離脱は .042 と余裕を設けています。家と看板は別の3Dオブジェクトです。
+
+## 配布用ファイルの更新
+
+```powershell
+node build.cjs
+```
+
+`dist/` の中身を同じ階層のまま静的ホスティングへ設置できます。`dist/index.html` も直接開けます。普段の閲覧にビルドは不要です。フォーム送信サーバー・外部CDNは使用していません。
 
 ## 確認範囲
 
-JavaScriptの構文、モデルの読込・寸法、パネルと作品詳細の切替、外部遷移の確認、未設定リンク、ドラッグ後の移動と家への接近判定、閉じた直後の再表示防止、リセットをプログラムで確認しています。実機ブラウザーでの描画・タッチ操作の目視検証は未実施です。
+JavaScriptの構文とプログラムによる操作検証を実施しています。実GLBの読込、オフライン画像、進行度とスクロール、接近・明示的決定・復帰、作品一覧とギャラリー、タッチの振り分け、動きを減らす設定、未設定データを確認しています。実機ブラウザーのGPU描画とタッチの目視検証は未実施です。

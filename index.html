@@ -3,44 +3,56 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#eeeee6">
-  <meta name="description" content="ハムスターと小さな街を歩く、Ayakaのポートフォリオ。自己紹介、チーム制作、個人制作、スキルとお問い合わせ。">
-  <title>Ayaka’s Little Town — Portfolio</title>
+  <meta name="theme-color" content="#f1f4f5">
+  <meta name="description" content="ハムスターと水色の道を歩く、Ayakaのポートフォリオ。自己紹介、個人制作、チーム制作、スキルとお問い合わせ。">
+  <title>Ayaka’s Little Walk — Portfolio</title>
   <link rel="stylesheet" href="style.css">
+  <script defer src="assets/screenshots-data.js"></script>
   <script defer src="script.js"></script>
   <script defer src="vendor/three.bundle.js"></script>
   <script defer src="assets/hamster-data.js"></script>
   <script defer src="world.js"></script>
 </head>
-<body>
+<body class="is-intro">
+  <a class="skip-link" href="#menu">メニューから作品を見る</a>
   <header class="masthead">
-    <a class="brand" href="./index.html" aria-label="Ayakaのポートフォリオ ホーム"><span class="brand-mark" aria-hidden="true">a.</span><span>AYAKA’S LITTLE TOWN<small>つくること、から始まる小さな街。</small></span></a>
-    <button class="reset" id="reset"><span aria-hidden="true">↺</span> はじめの位置</button>
+    <a class="brand" href="./index.html" aria-label="Ayakaのポートフォリオ ホーム"><span class="brand-mark" aria-hidden="true">a.</span><span>AYAKA’S LITTLE WALK<small>つくること、から続いていく道。</small></span></a>
+    <button class="reset" id="reset"><span aria-hidden="true">↺</span> はじめに戻る</button>
   </header>
-  <main>
-    <div class="introduction"><p class="eyebrow">A LITTLE WALK THROUGH MY PORTFOLIO</p><h1>ようこそ、<span>わたしの街へ。</span></h1><p>気になるおうちへ、ひと歩き。</p></div>
-    <section class="world" id="world" aria-label="4つの家がある円形の街">
-      <canvas id="town" tabindex="0" aria-label="ハムスターを操作。街をドラッグするか、矢印キーで歩けます。家のラベルからも内容を開けます。"></canvas>
-      <div id="labels" class="labels">
-        <button class="house-label" data-house="about"><span>01</span> 自己紹介 <i>↗</i></button>
-        <button class="house-label" data-house="team"><span>02</span> チーム制作作品 <i>↗</i></button>
-        <button class="house-label" data-house="projects"><span>03</span> 個人制作作品 <i>↗</i></button>
-        <button class="house-label" data-house="contact"><span>04</span> スキル / お問い合わせ <i>↗</i></button>
+  <main id="journey">
+    <section class="world" id="world" aria-label="水色の一本道に沿って4つの家を巡る街">
+      <canvas id="town" tabindex="0" aria-describedby="walk-instructions" aria-label="ハムスターの街。マウスでドラッグ、矢印キー、またはページの縦スクロールで歩けます。"></canvas>
+      <div class="approach-prompt" id="approach-prompt" aria-hidden="true" inert>
+        <button id="enter-house"><span id="enter-label">家に入る</span><span aria-hidden="true">↗</span></button>
+        <small>クリック / Enter / スペース</small>
       </div>
-      <p id="loading" class="loading" role="status">小さな街を準備しています…</p>
-      <span class="avatar-tag" id="avatar-tag" aria-hidden="true">YOU</span>
-      <span class="side-note" aria-hidden="true">SMALL STEPS, NEW POSSIBILITIES.</span>
+      <button class="avatar-handle" id="avatar-handle" aria-label="押したまま上下にドラッグしてハムスターを歩かせる" tabindex="-1"><span aria-hidden="true">↕</span></button>
+      <p id="world-error" class="world-error" role="status" hidden></p>
+      <p class="road-caption" aria-hidden="true">ONE ROAD. A FEW THINGS I MADE.</p>
     </section>
-    <div class="walk-guide"><span class="gesture" aria-hidden="true">↗</span><p>ドラッグして、おさんぽ。<small>家に近づくと開きます。ラベルをタップしてもOK。</small></p><button id="help" class="help" aria-label="操作方法を開く">?</button></div>
-    <nav class="town-nav" aria-label="ポートフォリオメニュー">
-      <button data-house="about"><span>01</span> 自己紹介</button>
-      <button data-house="team"><span>02</span> チーム制作作品</button>
-      <button data-house="projects"><span>03</span> 個人制作作品</button>
-      <button data-house="contact"><span>04</span> スキル / お問い合わせ</button>
-    </nav>
+    <div class="journey-space" aria-hidden="true"></div>
   </main>
-  <footer><p><span class="status-dot"></span><span id="walk-status" role="status">おさんぽ日和</span></p><span>© <span id="year">2026</span> Ayaka</span><p class="keyboard-hint">↑ ↓ ← → キーでも歩けます</p></footer>
-  <dialog id="panel" aria-labelledby="panel-title"><div class="panel-top"><span id="panel-kicker" class="eyebrow"></span><button class="close" id="close-panel" aria-label="閉じる">×</button></div><div id="panel-body"></div></dialog>
-  <noscript><p class="noscript">この街を歩くにはJavaScriptを有効にしてください。Ayakaのスキル：HTML、CSS、JavaScript、Python、C、C++。</p></noscript>
+  <aside class="walk-controls" aria-label="街の操作">
+    <div class="journey-progress"><span id="current-stop">道のはじまり</span><span id="progress-text">0%</span><div class="progress-track" aria-hidden="true"><span id="progress-fill"></span></div></div>
+    <p class="walk-instructions" id="walk-instructions">スクロール、またはドラッグで歩く。<small>家に近づいたら「入る」を選んでください。</small></p>
+    <div class="walk-actions"><button id="drag-walk" class="drag-walk" aria-label="押したまま上下にドラッグして歩く">↕ ドラッグで歩く</button><button id="help" class="help" aria-label="操作方法を開く">?</button></div>
+  </aside>
+  <nav class="town-nav" id="menu" tabindex="-1" aria-label="ポートフォリオの各ページを直接開く">
+    <button data-house="about"><span>01</span> 自己紹介</button>
+    <button data-house="projects"><span>02</span> 個人制作作品</button>
+    <button data-house="team"><span>03</span> チーム制作作品</button>
+    <button data-house="contact"><span>04</span> スキル / お問い合わせ</button>
+  </nav>
+  <div class="intro-layer" id="intro">
+    <div class="intro-copy"><p class="eyebrow">AYAKA’S PORTFOLIO</p><h1>つくったものを、<br>ひと歩き。</h1><p>ハムスターとたどる、小さな一本道。<br>気になる家で、ひと休みしていってください。</p><button id="start-walk" class="action primary" disabled>街を準備しています…</button><p id="loading-status" class="loading-status" role="status">ハムスターと作品を読み込んでいます。</p></div>
+    <div id="wheel-slot" class="wheel-slot"></div>
+    <button class="intro-menu-link" id="intro-menu-link">メニューから見る ↗</button>
+  </div>
+  <div class="wheel-host" id="wheel-host" aria-hidden="true"><canvas id="wheel" aria-label="作品のスクリーンショットでできた紙の回し車を走るハムスター"></canvas><span class="wheel-caption" id="wheel-caption">A LITTLE WARM-UP</span></div>
+  <div class="whiteout" id="whiteout" aria-hidden="true"></div>
+  <dialog id="panel" aria-labelledby="panel-title"><div class="panel-top"><span id="panel-kicker" class="eyebrow"></span><button class="close" id="close-panel" aria-label="閉じて家の前に戻る">×</button></div><div id="panel-body"></div></dialog>
+  <dialog id="outbound" aria-labelledby="outbound-title"><p class="eyebrow">ON MY WAY</p><h2 id="outbound-title">作品を開いています</h2><div id="outbound-wheel-slot"></div><p id="outbound-status" role="status">ハムスターも一緒に、次のページへ。</p></dialog>
+  <p class="sr-only" id="announcement" aria-live="polite"></p>
+  <noscript><p class="noscript">街を歩くにはJavaScriptを有効にしてください。<a href="https://github.com/ayarion">GitHub</a> / <a href="https://tsukuriba.org/togame/">togame</a> / <a href="https://tsukuriba.org/OjiMate/">OjiMate</a> / <a href="https://tsukuriba.org/kinto-log/">Kinto-Log</a> / <a href="https://tsukuriba.org/mersampo/">mersampo</a></p></noscript>
 </body>
 </html>
