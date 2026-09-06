@@ -34,8 +34,8 @@ p{line-height:1.9}
 .reset:hover{background:var(--blue-soft)}
 .reset span{font-size:18px;margin-right:6px}
 .world{position:fixed;inset:0;width:100%;height:100dvh;isolation:isolate}
-#town{display:block;width:100%;height:100%;touch-action:pan-y;cursor:grab}
-#town:active{cursor:grabbing}
+#town{display:block;width:100%;height:100%;touch-action:pan-y;cursor:pointer}
+#town:active{cursor:pointer}
 .journey-space{height:650svh;min-height:4200px;pointer-events:none}
 .road-caption{position:absolute;right:3vw;top:38%;writing-mode:vertical-rl;font-size:10px;letter-spacing:.2em;color:var(--muted);pointer-events:none}
 .world-error{position:absolute;left:50%;top:28%;transform:translateX(-50%);max-width:420px;width:calc(100% - 40px);padding:20px;background:var(--surface);border:1px solid var(--rule);font-size:14px;text-align:center}
@@ -46,8 +46,8 @@ p{line-height:1.9}
 .progress-track span{display:block;height:100%;background:var(--blue-deep);transform:scaleX(0);transform-origin:left}
 .walk-instructions{margin:0;font-size:14px;text-align:center}
 .walk-instructions small{display:block;font-size:12px;color:var(--muted)}
-.walk-actions{display:flex;align-items:center;gap:8px}
-.drag-walk{touch-action:none;user-select:none;border:1px solid var(--rule);border-radius:24px;background:var(--surface);padding:11px 15px;font-size:13px;cursor:grab;min-height:44px}
+
+.drag-walk{touch-action:pan-y;user-select:none;border:1px solid var(--rule);border-radius:24px;background:var(--surface);padding:11px 15px;font-size:13px;cursor:grab;min-height:44px}
 .drag-walk:active{cursor:grabbing;background:var(--blue-soft)}
 .help{border:1px solid var(--rule);border-radius:50%;width:44px;height:44px;background:var(--surface)}
 .town-nav{position:fixed;z-index:12;bottom:var(--safe-bottom);left:50%;transform:translateX(-50%);display:flex;padding:5px;background:var(--surface);border:1px solid var(--rule);border-radius:8px;box-shadow:0 8px 32px var(--shadow);width:max-content;max-width:calc(100% - 32px)}
@@ -61,7 +61,7 @@ p{line-height:1.9}
 .approach-prompt.is-visible>button,.approach-prompt.is-visible>small{transform:translateY(0)}
 .approach-prompt button{display:flex;align-items:center;justify-content:center;gap:18px;min-height:48px;background:var(--blue-deep);color:var(--surface);border:1px solid var(--surface);border-radius:5px;padding:12px 18px;box-shadow:0 6px 20px var(--shadow);font-size:14px}
 .approach-prompt small{display:block;font-size:11px;background:var(--surface);padding:3px 7px;width:fit-content;margin:7px auto 0;border-radius:3px;color:var(--muted)}
-.avatar-handle{position:absolute;left:0;top:0;width:46px;height:46px;touch-action:none;user-select:none;border-radius:50%;background:transparent;border:1px solid var(--blue-deep);color:var(--blue-deep);font-size:20px;opacity:.7;z-index:2}
+.avatar-handle{position:absolute;left:0;top:0;width:46px;height:46px;touch-action:pan-y;user-select:none;border-radius:50%;background:transparent;border:1px solid var(--blue-deep);color:var(--blue-deep);font-size:20px;opacity:.7;z-index:2}
 .avatar-handle:hover,.avatar-handle:active{background:var(--blue-soft);opacity:1}
 .intro-layer{position:fixed;z-index:20;inset:0;background:var(--paper);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;padding:110px 7vw 100px;gap:3vw;transition:opacity .55s var(--ease)}
 .intro-layer.is-leaving{opacity:0;pointer-events:none}
@@ -155,7 +155,7 @@ dialog p{font-size:15px;color:var(--muted)}
   .intro-copy .eyebrow{font-size:10px}.intro-copy .action{width:100%}
   .intro-copy .loading-status{margin:9px 0 0;font-size:11px!important}
   .intro-menu-link{font-size:12px;left:24px;bottom:17px}
-  .walk-controls{inset:auto 16px 118px}.journey-progress{width:130px}.walk-actions{gap:6px}.help{width:40px;height:40px}
+  .walk-controls{inset:auto 16px 118px}.journey-progress{width:130px}.help{width:40px;height:40px}
   .town-nav{bottom:max(10px,env(safe-area-inset-bottom))}
   .town-nav button{padding:10px 8px;font-size:11px}.town-nav button span{font-size:11px;margin-right:5px}
   .approach-prompt small{font-size:10px}
@@ -198,8 +198,8 @@ dialog p{font-size:15px;color:var(--muted)}
 .journey-progress{width:200px;font-size:13px}
 .walk-instructions{display:block;position:fixed;left:50%;bottom:110px;transform:translateX(-50%);padding:13px 20px;background:var(--surface);border:1px solid var(--rule);border-radius:6px;font-size:16px;width:max-content;max-width:calc(100% - 32px);opacity:1;transition:opacity .7s var(--ease);pointer-events:none;box-shadow:0 5px 30px var(--shadow)}
 .walk-instructions.is-used{opacity:0;visibility:hidden;transition:opacity .7s var(--ease),visibility 0s .7s}
-.hold-walk{width:54px;height:54px;font-size:23px;border:1px solid var(--rule);background:var(--surface);border-radius:50%;touch-action:none;user-select:none}
-.hold-walk:active{background:var(--blue);transform:translateY(2px)}
+
+
 .world-error{top:auto;bottom:100px;z-index:9;font-size:14px}
 .is-intro .world-error{display:none}
 .is-locked .walk-controls{visibility:hidden}
@@ -209,19 +209,20 @@ dialog p{font-size:15px;color:var(--muted)}
   .town-nav[open]{top:78px;right:16px;padding:22px}
   .town-nav nav button{font-size:15px}.town-nav nav button span{font-size:14px}
   .walk-controls{inset:auto 20px max(22px,env(safe-area-inset-bottom));gap:12px}
-  .journey-progress{width:155px;font-size:12px}.walk-actions{gap:8px}
-  .hold-walk{width:48px;height:48px}.walk-instructions{font-size:14px;bottom:96px;padding:12px 14px}
+  .journey-progress{width:155px;font-size:12px}
+  .walk-instructions{font-size:14px;bottom:96px;padding:12px 14px}
 }
 /* 歩行領域だけを保護。dialog 内の文章選択・コピーはブラウザ標準のまま。 */
-#town,.hold-walk,.walk-pad,.walk-instructions,.journey-progress,.scroll-lane,.approach-prompt{
+#town,.walk-instructions,.journey-progress,.approach-prompt{
   user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-user-drag:none;
 }
-#town,.hold-walk{touch-action:none}
-.walk-pad{position:fixed;z-index:10;width:108px;height:108px;margin:-54px 0 0 -54px;border:1px solid #ffffffcf;border-radius:50%;background:#f7f7f738;box-shadow:0 0 0 1px #59646b26,inset 0 0 22px #ffffff35;pointer-events:none;opacity:0;transition:opacity .18s ease}
-.walk-pad.is-active{opacity:1}
-.walk-pad-knob{position:absolute;left:39px;top:39px;width:28px;height:28px;border-radius:50%;border:1px solid #ffffffdc;background:#c74343b3;box-shadow:0 2px 10px #49333320;pointer-events:none}
+#town{touch-action:pan-y}
+
+
+
 .walk-instructions small{display:block;font-size:10px;line-height:1.8;margin-top:4px;font-weight:400}
-body:has(.world.is-steering) .walk-instructions{opacity:0}
+
 .journey-progress{pointer-events:none!important}
-.scroll-lane{display:none;position:absolute;inset:86px 0 160px auto;width:26px;touch-action:pan-y;}
-@media(pointer:coarse){.scroll-lane{display:block}.scroll-lane::after{content:"";position:absolute;right:5px;top:36%;height:64px;width:3px;border-radius:4px;background:#73899530}}
+
+
+#destination-marker{position:absolute;width:32px;height:22px;border:2px solid #c7434399;border-radius:50%;background:#c7434315;pointer-events:none;z-index:3;transform:translate(-50%,-50%)}

@@ -76,75 +76,104 @@
       const p=path.getPointAt(s.t),n=normal(s.t),g=new T.Group();g.position.copy(p).addScaledVector(n,s.side*4.6);
       // All door fronts face the fixed isometric viewing direction, including right-side houses.
       g.rotation.y=.43;g.scale.setScalar(1.5);scene.add(g);
-      const roofColor=[palette.peach,palette.blue,palette.green,palette.yellow][i];
-      box(2.55,.15,2.08,palette.white,0,.075,0,g);
-      box(2.28,1.5,1.85,palette.white,0,.89,0,g);
-      const shape=new T.Shape();shape.moveTo(-1.36,0);shape.lineTo(0,.93);shape.lineTo(1.36,0);shape.closePath();
-      mesh(new T.ExtrudeGeometry(shape,{depth:2.24,bevelEnabled:false}),roofColor,[0,1.65,-1.12],g);
-      box(.32,.68,.36,palette.white,.62,2.25,-.46,g);box(.44,.07,.46,roofColor,.62,2.6,-.46,g);
-      box(.72,1.08,.06,palette.ink,0,.72,.958,g);
-      const hinge=new T.Group();hinge.position.set(-.33,.19,.998);g.add(hinge);
-      box(.65,1.04,.085,roofColor,.325,.52,0,hinge);ball(.04,palette.woodLight,.53,.53,.064,hinge);
-      box(.98,.07,.46,palette.white,0,.11,1.16,g);
-      for(const x of [-.78,.78]){
-        box(.43,.57,.06,palette.woodLight,x,1.04,.955,g);
-        box(.34,.47,.07,palette.glass,x,1.04,.985,g);
-        box(.025,.47,.08,palette.white,x,1.04,1,g);
+      const roofColor=[0xc67e58,0x4387aa,0x557885,0x91cbb7][i];
+      const cream=0xfff1d7,warm=0xffcd83,mint=0xa5d5c3;
+      function label(text,w,h,x,y,z,background='#fff3dc',ink='#513e32'){
+        const cv=document.createElement('canvas');cv.width=1024;cv.height=320;const c=cv.getContext('2d');
+        c.fillStyle=background;c.fillRect(0,0,1024,320);c.fillStyle=ink;c.font='bold 170px Georgia';c.textAlign='center';c.textBaseline='middle';c.fillText(text,512,175,960);
+        const texture=new T.CanvasTexture(cv);texture.colorSpace=T.SRGBColorSpace;
+        box(w+.09,h+.09,.10,palette.wood,x,y,z,g);
+        const face=new T.Mesh(new T.PlaneGeometry(w,h),new T.MeshBasicMaterial({map:texture,toneMapped:false}));face.position.set(x,y,z+.06);g.add(face);return face;
       }
-      box(.07,.56,.66,palette.glass,1.15,1.02,0,g);
-      if(i===1){
-        for(let k=0;k<4;k++)box(.14,.18+.055*k,.12,[palette.peach,palette.green,palette.blue,palette.yellow][k],-.99+k*.16,.86,1.04,g);
+      function plant(x,z,size=.22,y=.12){
+        cylinder(size*.78,size*.60,size,palette.peach,x,y+size/2,z,g);
+        for(let k=0;k<7;k++){const angle=k*Math.PI*2/7,leaf=ball(size*.48,palette.green,x+Math.cos(angle)*size*.5,y+size*1.4,z+Math.sin(angle)*size*.5,g);leaf.scale.set(.6,1.1,1.6);leaf.rotation.y=-angle;}
       }
-      if(i===2){
-        const awning=box(2.45,.075,.58,roofColor,0,1.48,1.13,g);awning.rotation.x=.12;
-        [-1.04,1.04].forEach(x=>cylinder(.035,.035,1.25,palette.wood,x,.7,1.36,g));
-      }
-      if(i===3){box(.08,.9,.08,palette.metal,1.55,.45,.8,g);box(.42,.32,.34,roofColor,1.55,.98,.8,g);}
-      // Distinct front details: a welcoming porch, an atelier, animal windows, and a garden room.
-      box(2.5,.09,.12,roofColor,0,1.65,1.02,g);
-      box(.30,.28,.065,palette.glass,.325,.76,.06,hinge);
-      function planter(x,z,c){
-        cylinder(.15,.11,.26,palette.peach,x,.2,z,g);
-        const shrub=ball(.22,c,x,.46,z,g);shrub.scale.y=1.15;
-        ball(.065,palette.yellow,x+.10,.64,z+.03,g);
-      }
-      planter(-1.13,1.31,palette.green);planter(1.1,1.32,palette.leaf);
-      if(i===0){
-        box(1.3,.075,.85,roofColor,0,1.4,1.25,g);
-        [-.57,.57].forEach(x=>box(.065,1.24,.065,palette.white,x,.73,1.57,g));
-        box(1.48,.12,.9,palette.woodLight,0,.14,1.32,g);
-        const plaque=document.createElement('canvas');plaque.width=512;plaque.height=220;const pc=plaque.getContext('2d');
-        pc.fillStyle='#fffdf6';pc.fillRect(0,0,512,220);pc.fillStyle='#294956';pc.font='bold 100px Georgia';pc.textAlign='center';pc.textBaseline='middle';pc.fillText('Ayaka',256,115);
-        const pt=new T.CanvasTexture(plaque);pt.colorSpace=T.SRGBColorSpace;
-        box(.055,.7,.055,palette.wood,-.97,.44,1.8,g);
-        box(.64,.28,.07,palette.woodLight,-.97,.84,1.8,g);
-        const nameplate=new T.Mesh(new T.PlaneGeometry(.61,.25),new T.MeshBasicMaterial({map:pt}));nameplate.position.set(-.97,.84,1.84);g.add(nameplate);
-      }
-      if(i===1){
-        const skylight=box(.72,.035,.56,palette.glass,.54,2.23,-.12,g);skylight.rotation.z=-.6;
-        box(.035,.77,.035,palette.wood,1.44,.50,1.27,g);const easel=box(.53,.60,.06,palette.white,1.44,.85,1.27,g);easel.rotation.x=-.1;
-        ball(.11,palette.blue,1.37,.95,1.32,g);box(.21,.12,.02,palette.yellow,1.55,.73,1.32,g);
-        for(const x of [-.78,.78]){box(.64,.12,.26,palette.woodLight,x,.75,1.06,g);[-.15,0,.15].forEach(dx=>ball(.065,palette.peach,x+dx,.86,1.1,g));}
-      }
-      if(i===2){
-        for(const [x,kind] of [[-.78,'rabbit'],[.78,'dog']]){
-          box(.58,.71,.06,palette.ink,x,1.07,1.018,g);
-          const a=new T.Group();a.position.set(x,1.06,1.085);g.add(a);
-          ball(.13,kind==='rabbit'?palette.white:palette.woodLight,0,0,0,a);
-          for(const side of [-1,1]){
-            const ear=ball(.05,kind==='rabbit'?palette.white:palette.wood,side*.075,kind==='rabbit'?.17:.025,0,a);ear.scale.y=kind==='rabbit'?2.05:1.6;
-            ball(.018,palette.ink,side*.043,.02,.115,a);
-          }
-          ball(.024,palette.peach,0,-.035,.13,a);box(.67,.07,.20,palette.white,x,.73,1.09,g);
+      function awning(w,y,z,color){
+        for(let k=0;k<10;k++){
+          const stripe=box(w/10,.065,.66,k%2?cream:color,-w/2+(k+.5)*w/10,y,z,g);stripe.rotation.x=.16;
+          const edge=ball(w/20,k%2?cream:color,-w/2+(k+.5)*w/10,y-.09,z+.31,g);edge.scale.set(1,.60,.24);
         }
       }
-      if(i===3){
-        box(.92,1.18,1.18,palette.glass,1.59,.69,-.13,g);
-        for(const x of [1.17,1.59,2.01])box(.05,1.32,1.23,palette.white,x,.73,-.13,g);
-        box(1.05,.08,1.3,roofColor,1.58,1.41,-.13,g);
-        for(const k of [0,1,2])planter(1.35+k*.24,-.05,palette.green);
-        for(const x of [-1.42,-1.1,-.78])box(.045,.46,.055,palette.white,x,.34,1.96,g);
-        box(.75,.05,.055,palette.white,-1.1,.47,1.96,g);
+      function windowPane(x,y,w=.62,h=.70,z=1.01,lit=false){
+        box(w+.12,h+.12,.09,palette.woodLight,x,y,z,g);const pane=box(w,h,.07,lit?warm:palette.glass,x,y,z+.055,g);
+        if(lit)pane.material=new T.MeshStandardMaterial({color:warm,emissive:0xffa341,emissiveIntensity:.35,roughness:.8});
+        box(.035,h,.09,cream,x,y,z+.10,g);box(w,.035,.09,cream,x,y,z+.10,g);
+      }
+      function gable(w,depth,y,rise,color,x=0,z=0){
+        const shape=new T.Shape();shape.moveTo(-w/2,0);shape.lineTo(0,rise);shape.lineTo(w/2,0);shape.closePath();
+        return mesh(new T.ExtrudeGeometry(shape,{depth,bevelEnabled:false}),color,[x,y,z-depth/2],g);
+      }
+      box(2.7,.16,2.8,cream,0,.08,.22,g);
+      const hinge=new T.Group();hinge.position.set(-.32,.17,1.04);g.add(hinge);
+      if(i!==3){
+        box(.73,1.23,.08,palette.ink,0,.76,1.00,g);
+        box(.64,1.19,.085,roofColor,.32,.595,0,hinge);ball(.045,palette.woodLight,.51,.58,.075,hinge);
+      }
+      if(i===0){
+        // Introduce: 小さな窓・多肉植物・縞の日よけのある名前の店。
+        box(2.36,1.85,1.96,cream,0,1.05,0,g);
+        box(2.58,.22,2.10,palette.woodLight,0,2.08,0,g);
+        box(2.40,.10,1.94,palette.wood,0,2.23,0,g);
+        awning(2.50,1.62,1.29,roofColor);
+        windowPane(-.78,1.0,.53,.62);windowPane(.78,1.0,.53,.62);
+        label('Ayaka',.62,.26,-.95,.62,1.58);
+        box(.055,.5,.055,palette.wood,-.95,.27,1.58,g);
+        label('Hello',.42,.42,.92,.52,1.60);
+        for(const [x,z,size,y] of [[-1.25,1.24,.24,.14],[1.19,1.16,.32,.14],[-.72,-.30,.36,2.27],[.15,-.40,.29,2.27],[.73,-.05,.32,2.27],[-1.02,.0,.23,2.27]])plant(x,z,size,y);
+      }else if(i===1){
+        // 個人制作: 1階建ての路面店、ガラスの大きなショーウィンドウ。
+        box(2.40,1.80,1.94,cream,0,1.03,0,g);
+        box(2.60,.17,2.10,palette.woodLight,0,2.01,0,g);
+        for(const z of [-1.0,1.0])box(2.55,.26,.09,cream,0,2.15,z,g);
+        for(const x of [-1.25,1.25])box(.09,.26,2.0,cream,x,2.15,0,g);
+        windowPane(-.78,.93,.59,1.12);windowPane(.78,.93,.59,1.12);
+        box(.065,1.1,1.20,palette.glass,1.22,.92,0,g);
+        for(const z of [-.6,0,.6])box(.08,1.20,.045,cream,1.24,.92,z,g);
+        awning(2.65,1.77,1.25,roofColor);label('Open',.38,.22,.12,1.12,1.16);
+        for(let x=-1.2;x<1.3;x+=.40)for(const z of [1.2,1.57])box(.38,.035,.34,palette.white,x,.18,z,g);
+        plant(-1.20,1.48,.27);plant(1.18,1.53,.22);
+        box(.30,.33,.18,palette.peach,-.78,.60,1.08,g);box(.24,.23,.18,palette.blue,.78,.55,1.08,g);
+      }else if(i===2){
+        // チーム制作: 2階建て、屋根窓、暖かい窓、広いポーチと家族の庭。
+        box(3.0,.10,3.2,palette.green,0,.06,.30,g);
+        box(2.62,2.76,2.06,cream,0,1.56,0,g);
+        gable(2.94,2.38,2.94,1.02,roofColor);
+        box(.34,.85,.36,palette.woodLight,.88,3.48,-.55,g);
+        for(const y of [.45,.74,1.03,1.32,1.61,1.90,2.19,2.48,2.77])box(2.66,.018,.025,palette.woodLight,0,y,1.047,g);
+        for(const x of [-.82,.82]){windowPane(x,2.25,.66,.88,1.055,true);windowPane(x,1.0,.64,.74,1.07,true);}
+        box(.62,.47,.70,cream,0,3.28,1.02,g);gable(.85,.76,3.51,.39,roofColor,0,1.07);windowPane(0,3.28,.39,.38,1.39,true);
+        const porch=box(2.96,.10,.92,roofColor,0,1.63,1.43,g);porch.rotation.x=.10;
+        for(const x of [-1.22,1.22]){box(.13,1.46,.13,cream,x,.86,1.76,g);box(.23,.23,.23,palette.woodLight,x,.28,1.76,g);}
+        for(let k=0;k<3;k++)box(1.0,.10,.35,cream,0,.12+k*.10,2.04-k*.27,g);
+        for(const side of [-1,1]){
+          for(let k=0;k<7;k++)box(.075,.53,.065,cream,side*(.73+k*.17),.40,2.02,g);
+          box(1.08,.065,.075,cream,side*1.24,.57,2.02,g);
+          for(let k=0;k<3;k++)ball(.22,palette.green,side*(.90+k*.22),.31,1.98,g);
+        }
+        for(const [x,kind] of [[-.82,'rabbit'],[.82,'dog']]){
+          const a=new T.Group();a.name=kind;a.position.set(x,1.02,1.19);g.add(a);
+          ball(.14,kind==='rabbit'?palette.white:palette.woodLight,0,0,0,a);
+          for(const side of [-1,1]){const ear=ball(.052,kind==='rabbit'?palette.white:palette.wood,side*.085,kind==='rabbit'?.18:.015,0,a);ear.scale.y=kind==='rabbit'?2.1:1.6;ball(.018,palette.ink,side*.046,.02,.126,a);}
+          ball(.025,palette.peach,0,-.04,.14,a);
+        }
+      }else{
+        // 受付キオスク: 前面の壁を作らず、カウンター越しに中が見える。
+        box(2.38,1.90,.14,palette.woodLight,0,1.10,-.90,g);
+        for(const x of [-1.12,1.12])box(.15,1.88,1.94,mint,x,1.10,0,g);
+        box(2.40,.80,.15,mint,0,.58,1.01,g);
+        for(let x=-1.1;x<=1.1;x+=.18)box(.018,.70,.02,0x73ab99,x,.57,1.10,g);
+        box(2.62,.12,.55,cream,0,1.02,1.12,g);
+        box(2.60,.22,2.16,mint,0,2.03,0,g);
+        awning(2.64,1.88,1.23,0x79b6a1);
+        for(const y of [1.15,1.60]){box(1.8,.055,.30,palette.wood,0,y,.10,g);for(let k=0;k<5;k++)cylinder(.075,.06,.23,k%2?cream:0x579886,-.65+k*.32,y+.14,.11,g);}
+        // 実メッシュの封筒サイン。参考のブランド名は使わない。
+        box(.87,.58,.13,cream,0,2.49,.12,g);
+        for(const side of [-1,1]){const fold=box(.48,.045,.025,0x579886,side*.20,2.50,.205,g);fold.rotation.z=side*.5;}
+        label('Welcome',.78,.33,0,.61,1.13);
+        label('Contact',.53,.42,1.47,.67,1.12);box(.05,.55,.05,palette.wood,1.47,.28,1.12,g);
+        cylinder(.25,.25,.09,palette.woodLight,-1.48,.58,1.35,g);for(const dx of [-.14,.14])box(.055,.48,.055,mint,-1.48+dx,.30,1.35,g);
+        plant(.79,1.12,.16,1.09);
       }
       g.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.userData.base=o.material.color.clone();}});
       // Entry path and sign sit beside, never in front of, the door sightline.
@@ -160,7 +189,8 @@
       sign.position.copy(path.getPointAt(Math.min(1,s.t+.065))).addScaledVector(normal(Math.min(1,s.t+.065)),s.side*2.6);
       sign.rotation.y=Math.atan2(CAMERA_OFFSET.x,CAMERA_OFFSET.z);scene.add(sign);
       const boardWidth=i===3?3.8:3.5,boardHeight=i===3?1.4:1.05;
-      cylinder(.065,.07,1.42,palette.wood,0,.71,0,sign);
+      if(i===0){sign.position.copy(g.localToWorld(new T.Vector3(0,1.99,1.70)));sign.position.y-=1.65;}
+      else cylinder(.065,.07,1.42,palette.wood,0,.71,0,sign);
       const board=box(boardWidth,boardHeight,.12,palette.woodLight,0,1.65,0,sign);
       const signCanvas=document.createElement('canvas');signCanvas.width=1536;signCanvas.height=512;
       const ctx=signCanvas.getContext('2d');
@@ -170,13 +200,13 @@
         ctx.fillStyle='#203c48';ctx.textAlign='center';ctx.textBaseline='middle';
         ctx.font='bold 192px "Yu Gothic",sans-serif';
         if(i===3){ctx.fillText('スキル /',768,158);ctx.fillText('お問い合わせ',768,356,1410);}
-        else ctx.fillText(s.title,768,265,1410);
+        else ctx.fillText(i===0?'Introduce':s.title,768,265,1410);
       }
       const texture=new T.CanvasTexture(signCanvas);texture.colorSpace=T.SRGBColorSpace;
       const face=new T.Mesh(new T.PlaneGeometry(boardWidth-.08,boardHeight-.06),new T.MeshBasicMaterial({map:texture,side:T.DoubleSide,toneMapped:false}));
       face.position.set(0,1.65,.068);sign.add(face);
       g.updateMatrixWorld(true);
-      const doorPoint=g.localToWorld(new T.Vector3(0,1.55,1.25));
+      const doorPoint=g.localToWorld(new T.Vector3(0,i===2?4.6:i===3?3.5:2.75,1.25));
       return {...s,group:g,hinge,sign,boardWidth,boardHeight,doorPoint,doorAngle:0,doorTarget:0};
     });
 
@@ -231,7 +261,9 @@
       const geometry=new T.ExtrudeGeometry(letterShapes,{depth:.32,bevelEnabled:true,bevelThickness:.02,bevelSize:.015,bevelSegments:2,curveSegments:8});
       geometry.computeBoundingBox();geometry.translate(-geometry.boundingBox.max.x/2,0,0);
       const lettering=new T.Mesh(geometry,[material(palette.white),material(palette.blue)]);
-      lettering.name='PORTFOLIO';lettering.position.copy(roadside(.007,-4.8));lettering.position.y=.035;lettering.rotation.y=.16;
+      lettering.name='PORTFOLIO';lettering.position.copy(roadside(.007,-1.1));lettering.position.y=.035;lettering.rotation.y=.04;lettering.scale.setScalar(1.12);
+      lettering.position.z-=3.5; // スタートのハムスターや木より奥にずらし、文字面を隠さない。
+      lettering.material=[material(0xfdfaf1),material(0x216880)];
       lettering.castShadow=true;lettering.receiveShadow=true;scene.add(lettering);
     }
     // Sparse paving clusters give the road a rhythm without evenly repeated scenery.
@@ -243,8 +275,7 @@
     const cameraOffset=CAMERA_OFFSET.clone();
     let cameraFocus=path.getPointAt(0),openingStart=null,model=null,lastT=0,elapsed=0,frameId,gait=null;
     let nearTime=0,lastError=null,contextLost=false;
-    let gesture=null,keys=new Set(),zoom=1,activeNear=null,environmentDim=0,profile=CAMERA_PROFILES.desktop;
-    const pad=$('#walk-pad'),knob=pad.querySelector('.walk-pad-knob'),PAD_RADIUS=38,DEAD_ZONE=5;
+    let zoom=1,activeNear=null,environmentDim=0,profile=CAMERA_PROFILES.desktop;
     let width=1,height=1;const clock=new T.Clock();
     const prompt=$('#approach-prompt');
 
@@ -259,60 +290,58 @@
       camera.left=-half;camera.right=half;camera.top=half/aspect;camera.bottom=-half/aspect;camera.updateProjectionMatrix();
     }
     const resizeObserver=new ResizeObserver(resize);resizeObserver.observe(container);resize();
+    const raycaster=new T.Raycaster(),groundPlane=new T.Plane(new T.Vector3(0,1,0),0);
+    const destinationMarker=$('#destination-marker');
+    let tap=null,markerT=null,markerStarted=0;
+    function nearestRoadT(point){
+      let best=0,distance=Infinity;
+      for(let i=0;i<samples.length;i++){const d=samples[i].distanceToSquared(point);if(d<distance){distance=d;best=i/(samples.length-1);}}
+      // サンプル近傍を細かく探し、道から外れたクリックも中心線に投影。
+      let lo=Math.max(0,best-.002),hi=Math.min(1,best+.002);
+      for(let i=0;i<16;i++){const a=lo+(hi-lo)/3,b=hi-(hi-lo)/3;if(path.getPointAt(a).distanceToSquared(point)<path.getPointAt(b).distanceToSquared(point))hi=b;else lo=a;}
+      return (lo+hi)/2;
+    }
+    function destinationAt(e){
+      const r=canvas.getBoundingClientRect();
+      raycaster.setFromCamera(new T.Vector2((e.clientX-r.left)/r.width*2-1,1-(e.clientY-r.top)/r.height*2),camera);
+      const p=new T.Vector3();return raycaster.ray.intersectPlane(groundPlane,p)?nearestRoadT(p):null;
+    }
+    function showDestination(t){
+      markerT=t;markerStarted=performance.now();destinationMarker.hidden=false;
+      const v=screen(path.getPointAt(t));destinationMarker.style.left=v.x+'px';destinationMarker.style.top=v.y+'px';destinationMarker.style.opacity='1';
+      canvas.dataset.destination=t.toFixed(4);
+    }
     function clearWalkSelection(){
       const selection=window.getSelection();
-      if(selection&&[selection.anchorNode,selection.focusNode].some(n=>n&&(n.nodeType===1?n:n.parentElement)?.closest?.('#town,.walk-controls,.walk-pad,.scroll-lane')))selection.removeAllRanges();
+      if(selection&&[selection.anchorNode,selection.focusNode].some(n=>n&&(n.nodeType===1?n:n.parentElement)?.closest?.('#town,.walk-controls,.approach-prompt')))selection.removeAllRanges();
     }
-    function updatePad(e){
-      const g=gesture;if(!g)return;
-      const dx=e.clientX-g.x,dy=e.clientY-g.y,d=Math.hypot(dx,dy),scale=d>PAD_RADIUS?PAD_RADIUS/d:1;
-      knob.style.transform='translate('+dx*scale+'px,'+dy*scale+'px)';
-      // 押した瞬間の道の向きを固定。カメラ追従やアバター位置で符号を反転させない。
-      const along=(dx*g.forward.x+dy*g.forward.y)*scale;
-      g.direction=Math.sign(along)*Math.max(0,(Math.abs(along)-DEAD_ZONE)/(PAD_RADIUS-DEAD_ZONE));
-      if(controller.snapshot.reduced&&Math.abs(g.direction)>.15&&!g.stepped){controller.move(controller.snapshot.t+Math.sign(g.direction)*.025);g.stepped=true;}
+    function cancelTap(){
+      if(tap){const id=tap.id;tap=null;if(canvas.hasPointerCapture?.(id))canvas.releasePointerCapture(id);}
     }
-    function begin(e,mode){
-      if(controller.snapshot.phase!=='walking'||gesture||e.button!==0||e.isPrimary===false)return;
-      const target=e.currentTarget;
-      const t=controller.snapshot.t,p=path.getPointAt(t),a=p.clone().project(camera),b=p.clone().add(path.getTangentAt(t)).project(camera);
-      const forward=new T.Vector2((b.x-a.x)*width,-(b.y-a.y)*height).normalize();
-      gesture={id:e.pointerId,target,mode,x:e.clientX,y:e.clientY,forward,direction:mode==='control'?Number(target.dataset.direction):0};
-      pad.style.left=e.clientX+'px';pad.style.top=e.clientY+'px';knob.style.transform='translate(0,0)';pad.classList.add('is-active');container.classList.add('is-steering');
-      clearWalkSelection();
-      target.setPointerCapture?.(e.pointerId);
-      if(mode==='canvas')canvas.focus({preventScroll:true});
-      if(controller.snapshot.reduced)controller.move(controller.snapshot.t+gesture.direction*.025);
-      e.preventDefault();
-    }
-    function move(e){if(gesture?.id!==e.pointerId)return;if(e.pointerType==='mouse'&&!(e.buttons&1)){releaseGesture();return;}if(gesture.mode==='canvas')updatePad(e);clearWalkSelection();e.preventDefault();}
-    function end(e){if(gesture?.id===e.pointerId)releaseGesture(true);}
-    function releaseGesture(cancel=true){
-      if(gesture){const g=gesture;gesture=null;if(g.target.hasPointerCapture?.(g.id))g.target.releasePointerCapture(g.id);}
-      pad.classList.remove('is-active');container.classList.remove('is-steering');
-      if(cancel)controller.clearIntent();
-    }
-    [canvas,$('#walk-forward'),$('#walk-back')].forEach(el=>{
-      el.addEventListener('pointerdown',e=>begin(e,el===canvas?'canvas':'control'));
-      el.addEventListener('pointermove',move);el.addEventListener('pointerup',end);
-        el.addEventListener('pointercancel',end);el.addEventListener('lostpointercapture',end);
-        ['contextmenu','dragstart','selectstart'].forEach(type=>el.addEventListener(type,e=>{e.preventDefault();clearWalkSelection()}));
-      });
-      window.addEventListener('pointerup',end);window.addEventListener('pointercancel',end);
-      [prompt,$('.scroll-lane')].forEach(el=>['contextmenu','dragstart','selectstart'].forEach(type=>el.addEventListener(type,e=>e.preventDefault())));
-      window.addEventListener('resize',()=>clearInput());
-    document.addEventListener('keydown',e=>{
-      if(controller.snapshot.phase!=='walking'||!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key))return;
-      if(e.target.closest?.('input,textarea,select,[data-house]'))return;
-      e.preventDefault();
-      if(controller.snapshot.reduced){if(!e.repeat)controller.move(controller.snapshot.t+(['ArrowDown','ArrowRight'].includes(e.key)?.025:-.025));}
-      else keys.add(e.key);
+    function clearInput(){cancelTap();controller.clearIntent();markerT=null;destinationMarker.hidden=true;}
+    canvas.addEventListener('pointerdown',e=>{
+      if(!['opening','walking'].includes(controller.snapshot.phase)||contextLost||e.button!==0||e.isPrimary===false||tap)return;
+      const t=destinationAt(e);if(t===null)return;
+      tap={id:e.pointerId,x:e.clientX,y:e.clientY,t,moved:false};
+      canvas.setPointerCapture?.(e.pointerId);clearWalkSelection();showDestination(t);
     });
-    window.addEventListener('keyup',e=>keys.delete(e.key));
-    function clearInput(){keys.clear();releaseGesture(true);}
+    canvas.addEventListener('pointermove',e=>{
+      if(tap?.id!==e.pointerId)return;
+      if(Math.hypot(e.clientX-tap.x,e.clientY-tap.y)>8){tap.moved=true;controller.clearIntent();markerT=null;destinationMarker.hidden=true;}
+    });
+    canvas.addEventListener('pointerup',e=>{
+      if(tap?.id!==e.pointerId)return;
+      const selected=tap,r=canvas.getBoundingClientRect();cancelTap();
+      if(selected.moved||e.clientX<r.left||e.clientX>r.left+r.width||e.clientY<r.top||e.clientY>r.top+r.height)return;
+      controller.seek(selected.t);canvas.focus({preventScroll:true});clearWalkSelection();e.preventDefault();
+    });
+    canvas.addEventListener('pointercancel',e=>{if(tap?.id===e.pointerId)clearInput()});
+    canvas.addEventListener('lostpointercapture',e=>{if(tap?.id===e.pointerId)cancelTap()});
+    [canvas,prompt].forEach(el=>['contextmenu','dragstart','selectstart'].forEach(type=>el.addEventListener(type,e=>{e.preventDefault();clearWalkSelection()})));
     window.addEventListener('town:clear-input',clearInput);
     window.addEventListener('blur',clearInput);
     document.addEventListener('visibilitychange',()=>{if(document.hidden)clearInput()});
+    window.addEventListener('resize',clearInput);
     window.addEventListener('town:start',()=>{openingStart=performance.now();avatar.visible=!!model;});
     window.addEventListener('town:door',e=>{houses.forEach(h=>{h.doorTarget=h.id===e.detail.id&&e.detail.open?-Math.PI*.52:0;});});
     canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();contextLost=true;clearInput();error('街の描画を復旧しています。メニューも利用できます。',new Error('WebGL context lost'));});
@@ -333,7 +362,7 @@
       for(const side of [-1,1]){ball(.12,0xe0ba82,side*.26,1.25,0,g);ball(.03,palette.ink,side*.12,1.03,.33,g);const arm=ball(.075,0xe0ba82,side*.29,.57,0,g);arm.name=side<0?'ArmL':'ArmR';const leg=ball(.10,palette.ink,side*.13,.11,.025,g);leg.name=side<0?'LegL':'LegR';}
       ball(.06,0xc27e72,0,.91,.35,g);return g;
     }
-    const fallback=makeFallbackHamster();avatar.add(fallback);model=fallback;wheel.setHamster(fallback);controller.ready(true);
+    const fallback=makeFallbackHamster();avatar.add(fallback);model=fallback;gait=makeGait(fallback);wheel.setHamster(fallback);controller.ready(true);
     async function loadHamster(){
       try{
       let bytes;
@@ -373,12 +402,7 @@
     function frame(){
       frameId=requestAnimationFrame(frame);const dt=Math.min(clock.getDelta(),.25);if(document.hidden||contextLost)return;
       try{
-      const s=controller.snapshot;
-      if(s.phase==='walking'&&gesture&&!s.reduced)controller.move(s.t+gesture.direction*dt*.08);
-        if(s.phase==='walking'&&keys.size&&!gesture){
-        const direction=Number(keys.has('ArrowDown')||keys.has('ArrowRight'))-Number(keys.has('ArrowUp')||keys.has('ArrowLeft'));
-        controller.move(s.t+direction*dt*.08);
-      }
+      controller.tick(dt);
       const state=controller.snapshot,t=state.t,p=path.getPointAt(t),tan=path.getTangentAt(t);
       const changed=Math.abs(t-lastT)>.00001,moving=state.phase==='walking'&&changed;
       elapsed+=dt;
@@ -405,7 +429,7 @@
           focus.addScaledVector(right,(Math.min(...values)+Math.max(...values))/2-focus.dot(right));
         }
         if(focused&&!state.reduced)focus.lerp(focused.group.position.clone().setY(1.8),profile.house);
-        const desiredZoom=focused&&!state.reduced?APPROACH_ZOOM*profile.approach:1;
+        const desiredZoom=focused&&!state.reduced?APPROACH_ZOOM*profile.approach*(focused.id==='team'?.85:focused.id==='about'?.93:1):1;
       let opening=1;
       if(['loading','intro'].includes(state.phase)){
         focus=path.getPointAt(.2);focus.y=.7;zoom=.48;avatar.visible=false;opening=0;
@@ -419,6 +443,11 @@
       }
       if(state.reduced||!camera.position.lengthSq())cameraFocus.copy(focus);else cameraFocus.lerp(focus,1-Math.exp(-dt*7));
       camera.position.copy(cameraFocus).add(cameraOffset);camera.lookAt(cameraFocus);camera.zoom=zoom;camera.updateProjectionMatrix();camera.updateMatrixWorld();
+      if(markerT!==null){
+        const age=(performance.now()-markerStarted)/550;
+        if(age>=1){markerT=null;destinationMarker.hidden=true;}
+        else{const v=screen(path.getPointAt(markerT));destinationMarker.style.left=v.x+'px';destinationMarker.style.top=v.y+'px';destinationMarker.style.opacity=String(1-age);destinationMarker.style.transform='translate(-50%,-50%) scale('+(state.reduced?1:.7+age*.9)+')';}
+      }
       sun.position.copy(cameraFocus).add(new T.Vector3(-12,24,15));sun.target.position.copy(cameraFocus);sun.target.updateMatrixWorld();
       const dimTarget=focused&&!state.reduced?.2:0;environmentDim+=(dimTarget-environmentDim)*(1-Math.exp(-dt*4));
       materials.forEach(mat=>dimMaterial(mat,environmentDim));
@@ -502,7 +531,8 @@
       }
       // トップでも全ての紙に実画像を使う。画像は外部ファイルのまま読み込む。
       lazyTextures.forEach(load=>load());
-      const hamster=new T.Group();hamster.position.set(0,-2.15,1.12);hamster.rotation.y=.75;ws.add(hamster);
+      // 時計回りの輪の底面は左へ流れる。ハムスターは右向きに走り、足を後ろへ送る。
+      const hamster=new T.Group();hamster.position.set(0,-2.15,1.12);hamster.rotation.y=Math.PI/2;ws.add(hamster);
       function setHamster(model){
         hamster.clear();const copy=model.clone(true);copy.scale.multiplyScalar(1.35);copy.position.multiplyScalar(1.35);hamster.add(copy);running=copy;runnerGait=makeGait(copy);
       }
@@ -513,7 +543,7 @@
         if(index>=0){
           // Bring the selected screenshot to the forward/right arc on the final rotation.
           const desired=cards[index].theta+.8;
-          destination=desired+Math.ceil((spin-desired)/(Math.PI*2)+1)*Math.PI*2;
+          destination=desired+Math.floor((spin-desired)/(Math.PI*2)-1)*Math.PI*2;
         }else destination=null;
       });
       let wheelTime=0;
@@ -523,7 +553,7 @@
         if(c.width!==Math.round(w*wr.getPixelRatio())||c.height!==Math.round(h*wr.getPixelRatio())){wr.setSize(w,h,false);wc.aspect=w/Math.max(1,h);wc.updateProjectionMatrix();}
         wheelTime+=dt;
         if(!reduced){
-          if(destination!==null)spin+=(destination-spin)*(1-Math.exp(-dt*5.5));else spin+=dt*.65;
+          if(destination!==null)spin+=(destination-spin)*(1-Math.exp(-dt*5.5));else spin-=dt*.65;
           wheelGroup.rotation.z=spin;
           if(running)hamster.position.y=-2.15+Math.abs(Math.sin(wheelTime*11))*.04;
         }

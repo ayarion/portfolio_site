@@ -23,11 +23,11 @@
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" sizes="180x180">
-  <link rel="stylesheet" href="style.css?v=20260906-pad">
-  <script defer src="script.js?v=20260906-pad"></script>
+  <link rel="stylesheet" href="style.css?v=20260907-walk">
+  <script defer src="script.js?v=20260907-walk"></script>
   <script defer src="vendor/three.bundle.js"></script>
   <script defer src="assets/portfolio-type.js"></script>
-  <script defer src="world.js?v=20260906-pad"></script>
+  <script defer src="world.js?v=20260907-walk"></script>
 </head>
 <body class="is-intro">
   <a class="skip-link" href="#menu">メニューから作品を見る</a>
@@ -36,9 +36,8 @@
   </header>
   <main id="journey">
     <section class="world" id="world" aria-label="水色の一本道に沿って4つの家を巡る街">
-      <canvas id="town" tabindex="0" aria-describedby="walk-instructions" aria-label="ハムスターの街。押してパッドを引くと歩きます。矢印キー、スクロールも使えます。スマホの縦スクロールは右端から。"></canvas>
-      <div id="walk-pad" class="walk-pad" aria-hidden="true"><span class="walk-pad-knob"></span></div>
-      <div class="scroll-lane" aria-hidden="true"></div>
+      <canvas id="town" tabindex="0" aria-describedby="walk-instructions" aria-label="ハムスターの街。行きたい場所をタップまたはクリックすると歩きます。縦スクロールでも進めます。"></canvas>
+      <div id="destination-marker" aria-hidden="true" hidden></div>
       <div class="approach-prompt" id="approach-prompt" aria-hidden="true" inert>
         <button id="enter-house"><span id="enter-label">家に入る</span><span aria-hidden="true">↗</span></button>
         <small>クリック / Enter / スペース</small>
@@ -49,8 +48,7 @@
   </main>
   <aside class="walk-controls" aria-label="街の操作">
     <div class="journey-progress"><span id="current-stop">道のはじまり</span><span id="progress-text">0%</span><div class="progress-track" aria-hidden="true"><span id="progress-fill"></span></div></div>
-    <p class="walk-instructions" id="walk-instructions">押して、進みたい方向へ引く。<small>スクロールでも歩けます · スマホは画面の右端から</small></p>
-    <div class="walk-actions"><button id="walk-back" class="hold-walk" data-direction="-1" aria-label="長押しして戻る">↑</button><button id="walk-forward" class="hold-walk" data-direction="1" aria-label="長押しして進む">↓</button></div>
+    <p class="walk-instructions" id="walk-instructions">行きたい場所をタップ。<small>縦スクロールでも歩けます</small></p>
   </aside>
   <dialog class="town-nav" id="menu" aria-labelledby="menu-title"><div class="menu-heading"><h2 id="menu-title">Portfolio</h2><button id="close-menu" class="close" aria-label="メニューを閉じる">×</button></div><nav aria-label="ポートフォリオの各ページを直接開く">
     <button data-house="about"><span>01</span> 自己紹介</button>
@@ -69,4 +67,3 @@
   <noscript><p class="noscript">街を歩くにはJavaScriptを有効にしてください。<a href="https://github.com/ayarion">GitHub</a> / <a href="https://tsukuriba.org/togame/">togame</a> / <a href="https://tsukuriba.org/OjiMate/">OjiMate</a> / <a href="https://tsukuriba.org/kinto-log/">Kinto-Log</a> / <a href="https://tsukuriba.org/mersampo/">mersampo</a></p></noscript>
 </body>
 </html>
-

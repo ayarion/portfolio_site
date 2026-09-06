@@ -100,14 +100,14 @@ window.PORTFOLIO = {
     if(!['loading','intro'].includes(state.phase))writeScroll();
   }
   function seek(value){
-    if(state.phase!=='walking')return;
+    if(!['opening','walking'].includes(state.phase)||!Number.isFinite(value))return;
     const t=Math.max(0,Math.min(1,value));
     if(state.reduced){targetT=null;setProgress(t);}else targetT=t;
   }
   function tick(dt){
     if(state.phase!=='walking'||targetT===null)return false;
     const d=targetT-state.t,step=Math.min(Math.abs(d),dt*.058);
-    if(Math.abs(d)<.00008){targetT=null;return false}
+    if(Math.abs(d)<.00008){const arrived=targetT;targetT=null;setProgress(arrived);return false}
     setProgress(state.t+Math.sign(d)*step);
     return true;
   }
@@ -131,13 +131,13 @@ window.PORTFOLIO = {
   function start(direct=false){
     if(!['intro','loading'].includes(state.phase)||!introReady||performance.now()<introDeadline)return;
     const generation=++transitionGeneration;
-    $('#intro').classList.add('is-leaving');document.body.classList.remove('is-intro');$('#journey').inert=false;
+    $('#intro').hidden=true;$('#wheel-host').hidden=true;document.body.classList.remove('is-intro');$('#journey').inert=false;
     phase('opening');refreshRange();setProgress(0,'start');emit('town:start');
     const finish=()=>{
       if(generation!==transitionGeneration)return;
       $('#intro').hidden=true;$('#wheel-host').hidden=true;phase('walking');
       if(!direct)$('#town').focus({preventScroll:true});
-      announce('道のはじまりです。押してパッドを引くと歩きます。スクロールでも進めます。スマホは右端から縦スクロールできます。');
+      announce('道のはじまりです。行きたい場所をタップすると歩きます。縦スクロールでも進めます。');
     };
     if(state.reduced||direct)finish();else setTimeout(finish,800);
   }
@@ -182,7 +182,7 @@ window.PORTFOLIO = {
       html+='<p>気になる作品を選んでください。</p><div class="project-list">'+(items.length?items.map(p=>'<button class="project-row" data-project="'+escape(p.id)+'">'+thumbnail(p)+'<span><strong>'+escape(p.title)+'</strong><small>'+ (id==='team'?'チーム制作':'個人制作')+'</small></span><span aria-hidden="true">↗</span></button>').join(''):'<p>作品を準備しています。</p>')+'</div>';
     }
     if(id==='contact')html+='<h3>使えるスキル</h3><div class="badge-list">'+data.skills.map(s=>'<span class="badge">'+escape(s)+'</span>').join('')+'</div><h3>お問い合わせ</h3><p>制作のご相談やご連絡は、こちらから。</p>'+(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)?'<a class="action primary" href="mailto:'+encodeURIComponent(data.email)+'">メールで問い合わせる ↗</a>':'<button class="action" disabled>お問い合わせ · 準備中</button>');
-    if(id==='help')html+='<p>道を押すと丸いパッドが現れます。そのまま進みたい方向へ引くと歩き、中心から遠く引くほど速くなります。離すと止まります。</p><p>マウスホイールでも歩けます。スマホの縦スクロールは画面右端の細い領域から。右下の ↑ ↓ の長押しや、矢印キーも使えます。</p><p>家に近づくとカメラが寄り、「入る」が現れます。クリック、Enter、スペースで決定すると開き、Escapeで家の前に戻ります。</p><p>動きを減らす設定では、パッドを引くたびに一歩ずつ移動し、ズームや自動スクロールを省きます。</p>';
+    if(id==='help')html+='<p>行きたい場所をタップまたはクリックすると、その場所まで自動で歩きます。途中で別の場所を選ぶと行き先が変わります。</p><p>縦スクロールでも歩けます。スクロールを始めると、選んだ行き先への移動は止まります。</p><p>家に近づくと「入る」が現れます。クリック、Enter、スペースで開き、Escapeで家の前に戻ります。</p><p>動きを減らす設定では、選んだ場所へ瞬間移動します。</p>';
     body.innerHTML=html;wireImageFallbacks();
   }
   function socialLink(label,url){return safeURL(url)?'<a class="action" href="'+escape(safeURL(url))+'" target="_blank" rel="noopener noreferrer">'+label+' ↗</a>':'<button class="action" disabled>'+label+' · 準備中</button>';}
@@ -267,13 +267,14 @@ window.PORTFOLIO = {
     if(e.repeat||state.phase!=='walking'||!state.near||!['Enter',' '].includes(e.key))return;
     // Enter on another interactive control keeps its ordinary button/link behavior.
     const target=e.target;
-    if(target instanceof Element&&target.closest('button,a,input,textarea,select')&&!['enter-house','walk-forward','walk-back'].includes(target.id))return;
+    if(target instanceof Element&&target.closest('button,a,input,textarea,select')&&target.id!=='enter-house')return;
     e.preventDefault();requestHouse(state.near,target);
   });
+  window.addEventListener('wheel',()=>{if(['opening','walking'].includes(state.phase)){targetT=null;emit('town:clear-input');}},{passive:true});
   window.addEventListener('scroll',()=>{
     const y=window.scrollY;
     const delta=y-previousScroll;previousScroll=y;
-    if(state.phase!=='walking')return;
+    if(!['opening','walking'].includes(state.phase))return;
     if(expectedScroll!==null&&Math.abs(y-expectedScroll)<1.5){expectedScroll=null;return;}
     expectedScroll=null;targetT=null;emit('town:clear-input');
     // Reduced mode has no automatic scrolling: relative input prevents a jump after a teleport.
