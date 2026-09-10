@@ -23,11 +23,11 @@
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" sizes="180x180">
-  <link rel="stylesheet" href="style.css?v=20260907-town">
-  <script defer src="script.js?v=20260907-town"></script>
+  <link rel="stylesheet" href="style.css?v=20260911-town">
+  <script defer src="script.js?v=20260911-town"></script>
   <script defer src="vendor/three.bundle.js"></script>
   <script defer src="assets/portfolio-type.js"></script>
-  <script defer src="world.js?v=20260907-town"></script>
+  <script defer src="world.js?v=20260911-town"></script>
 </head>
 <body class="is-intro">
   <a class="skip-link" href="#menu">メニューから作品を見る</a>
@@ -58,7 +58,9 @@
   </nav><div class="menu-extras"><button class="reset" id="reset">↺ はじめに戻る</button><button id="help" class="help" aria-label="操作方法を開く">?</button></div></dialog>
   <div class="intro-layer" id="intro" role="button" tabindex="0" aria-disabled="true" aria-label="ハムスターの回し車。4秒後、クリックまたはEnterで街へ進む">
     <div id="wheel-slot" class="wheel-slot"></div>
+    <div class="intro-meter"><div id="intro-progress" role="progressbar" aria-label="オープニング" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span></span></div><p id="intro-status" role="status">街を準備しています</p></div>
   </div>
+  <button id="sound-toggle" class="sound-toggle" aria-pressed="false" aria-label="足音と息づかいの音をオンにする">音をオン</button>
   <div class="wheel-host" id="wheel-host" aria-hidden="true"><canvas id="wheel" aria-label="紙の回し車を走るハムスター"></canvas></div>
   <div class="whiteout" id="whiteout" aria-hidden="true"></div>
   <dialog id="panel" aria-labelledby="panel-title"><div class="panel-top"><span id="panel-kicker" class="eyebrow"></span><button class="close" id="close-panel" aria-label="閉じて家の前に戻る">×</button></div><div id="panel-body"></div></dialog>

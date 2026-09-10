@@ -299,6 +299,7 @@ window.PORTFOLIO = {
   window.TownState={
     stops,
     get snapshot(){return Object.freeze({...state})},
+    get introProgress(){return Math.max(0,Math.min(1,1-(introDeadline-performance.now())/4000))},
     imageSource,ready,start,seek,tick,setNear:nearHouse,requestHouse,
     clearIntent(){targetT=null},
     move(value){if(state.phase==='walking'){targetT=null;setProgress(value)}},

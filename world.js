@@ -16,7 +16,7 @@
   const CAMERA_PROFILES={phone:{half:7.1,ahead:.07,house:.72,approach:.85,offset:[0,14,22]},tablet:{half:8.4,ahead:.05,house:.60,approach:.90,offset:[3,14,21]},desktop:{half:null,ahead:0,house:.40,approach:1,offset:[9,14,18]}};
   try {
     const palette={
-      ground:0xe9ecee,road:0x49bde9,roadEdge:0xd6f1fc,white:0xfffdf6,
+      ground:0xe5eee8,road:0x42bde9,roadEdge:0xc8eff6,white:0xfffdf6,
       wood:0xbba187,woodLight:0xe7d9c4,ink:0x294956,trunk:0xa3ada8,
       leaf:0x8fcf93,leafBlue:0x89cdd1,metal:0x739fac,
       blue:0x409fc7,peach:0xe89e80,green:0x72af8a,yellow:0xe7bb60,
@@ -28,14 +28,15 @@
     renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.8));
     renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;
     renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;
-    scene.add(new T.HemisphereLight(palette.white,0xc5d4d8,2.4));
-    const sun=new T.DirectionalLight(0xffffff,2.6);sun.position.set(-12,24,15);sun.castShadow=true;
+    scene.add(new T.HemisphereLight(0xd9f0ff,0xc3ccb0,1.65));
+    const fill=new T.DirectionalLight(0xc3e8ff,.65);fill.position.set(10,8,-10);scene.add(fill);
+    const sun=new T.DirectionalLight(0xffe8ca,2.5);sun.position.set(-12,24,15);sun.castShadow=true;
     sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-18,right:18,top:18,bottom:-18,near:.5,far:70});
     sun.shadow.normalBias=.04;sun.shadow.bias=-.0002;sun.shadow.radius=5;scene.add(sun);scene.add(sun.target);
     const materials=new Map();
     function material(color){
       if(!materials.has(color)){
-        const mat=new T.MeshStandardMaterial({color,roughness:.92});
+        const mat=new T.MeshStandardMaterial({color,roughness:color===palette.glass?.22:color===palette.metal?.38:color===palette.red?.48:.87,metalness:color===palette.metal?.18:0});
         mat.userData.base=new T.Color(color);materials.set(color,mat);
       }
       return materials.get(color);
@@ -46,9 +47,13 @@
     const box=(w,h,d,c,x,y,z,p)=>mesh(new T.BoxGeometry(w,h,d),c,[x,y,z],p);
     const cylinder=(r1,r2,h,c,x,y,z,p,seg=16)=>mesh(new T.CylinderGeometry(r1,r2,h,seg),c,[x,y,z],p);
     const ball=(r,c,x,y,z,p)=>mesh(new T.SphereGeometry(r,12,10),c,[x,y,z],p);
-    const ground=new T.Mesh(new T.PlaneGeometry(180,180),new T.MeshBasicMaterial({color:palette.ground,toneMapped:false}));
+    const grainCanvas=document.createElement('canvas');grainCanvas.width=grainCanvas.height=128;const grainCtx=grainCanvas.getContext('2d');
+    grainCtx.fillStyle='#dedede';grainCtx.fillRect(0,0,128,128);
+    for(let i=0;i<650;i++){grainCtx.fillStyle=i%2?'#aaaaaa':'#ffffff';grainCtx.fillRect((i*37)%128,(i*73+Math.floor(i/128)*17)%128,1,1);}
+    const grain=new T.CanvasTexture(grainCanvas);grain.wrapS=grain.wrapT=T.RepeatWrapping;grain.repeat.set(28,28);
+    const ground=new T.Mesh(new T.PlaneGeometry(180,180),new T.MeshStandardMaterial({color:palette.ground,roughness:.94,roughnessMap:grain,bumpMap:grain,bumpScale:.018}));
     ground.rotation.x=-Math.PI/2;ground.position.y=-.065;scene.add(ground);
-    const shadow=new T.Mesh(new T.PlaneGeometry(160,160),new T.ShadowMaterial({color:palette.shadow,opacity:.105}));
+    const shadow=new T.Mesh(new T.PlaneGeometry(160,160),new T.ShadowMaterial({color:palette.shadow,opacity:.20}));
     shadow.rotation.x=-Math.PI/2;shadow.position.y=-.025;shadow.receiveShadow=true;scene.add(shadow);
     const PATH_POINTS=[[-1,0,-28],[-3.8,0,-19],[2.8,0,-7],[-2.8,0,7],[2.7,0,21],[.3,0,30]];
     const path=new T.CatmullRomCurve3(PATH_POINTS.map(p=>new T.Vector3(...p)),false,'catmullrom',.38);
@@ -63,7 +68,7 @@
         if(i<420){const k=i*2;indices.push(k,k+2,k+1,k+1,k+2,k+3);}
       }
       const geo=new T.BufferGeometry();geo.setAttribute('position',new T.Float32BufferAttribute(positions,3));geo.setIndex(indices);geo.computeVertexNormals();
-      const m=new T.Mesh(geo,new T.MeshBasicMaterial({color,toneMapped:false}));scene.add(m);return m;
+      const m=new T.Mesh(geo,new T.MeshStandardMaterial({color,roughness:.78,roughnessMap:grain}));m.receiveShadow=true;scene.add(m);return m;
     }
     roadStrip(1.68,.003,palette.roadEdge);roadStrip(1.48,.013,palette.road);
     const roadLength=path.getLength();
@@ -210,11 +215,13 @@
       return {...s,group:g,hinge,sign,boardWidth,boardHeight,doorPoint,doorAngle:0,doorTarget:0};
     });
 
+    const living=[];
     function roadside(t,offset){return path.getPointAt(t).addScaledVector(normal(t),offset)}
     function tree(t,offset,scale=1,color=palette.leaf){
       const p=roadside(t,offset),g=new T.Group();g.position.copy(p);g.scale.setScalar(scale);scene.add(g);
       cylinder(.055,.09,1.0,palette.trunk,0,.52,0,g);
       const crown=ball(.6,color,0,1.53,0,g);crown.scale.set(.86,1.5,.86);
+      living.push({kind:'tree',object:crown,phase:t*29});
       cylinder(.36,.4,.06,palette.white,0,.02,0,g);
     }
     [[.015,4,1.1],[.06,6,1.2],[.23,-6.5,.8],[.22,-4.8,1.1],[.25,5,1.35],[.27,6.3,.85],[.44,-4.2,1.25],[.45,-6,1],[.48,4.5,.85],[.55,5.1,1.2],[.59,6,.85],[.73,-4,.95],[.74,-6,1.2],[.77,4.1,.8],[.95,-4.4,1.2],[.99,7.8,1.0]].forEach((v,i)=>tree(...v,i%3===0?palette.leafBlue:palette.leaf));
@@ -269,11 +276,32 @@
     // Sparse paving clusters give the road a rhythm without evenly repeated scenery.
     [[.175,2.4],[.32,-3.2],[.58,3.6],[.75,-3.4],[.92,-3]].forEach(([t,o],i)=>{const p=roadside(t,o);cylinder(.31,.4,.12,palette.white,p.x,.055,p.z);tree(t+.009,o+.7,.42,i%2?palette.leaf:palette.leafBlue);});
 
+    // 小物は休憩場所ごとのまとまりで配置。歩く中心線と看板の前は空ける。
+    for(const [t,side] of [[.32,4.6],[.47,-4.8],[.68,5.0],[.84,-5.2]]){
+      const p=roadside(t,side),g=new T.Group();g.position.copy(p);scene.add(g);
+      for(let k=0;k<5;k++)box(.08,.58,.08,palette.white,-.64+k*.32,.30,0,g);
+      box(1.45,.055,.08,palette.woodLight,0,.45,0,g);
+      cylinder(.25,.19,.35,palette.wood,1.05,.18,.1,g);ball(.30,palette.leaf,1.05,.48,.1,g);
+      for(let k=0;k<3;k++)ball(.075,k===1?palette.red:palette.yellow,.90+k*.14,.70,.1,g);
+    }
+    bench(.42,3.5);bench(.86,-3.3);lamp(.39,-2.4);lamp(.68,2.4);
+    // 雲は町の外側をゆっくり流し、建物の前を横切らせない。
+    for(const [x,z] of [[-11,-28],[12,-8],[-12,17],[11,33]]){
+      const cloud=new T.Group();cloud.position.set(x,7,z);scene.add(cloud);
+      for(let k=0;k<3;k++){const puff=ball(.8,0xf9fcff,(k-1)*.82,k===1?.25:0,0,cloud);puff.scale.set(1.4,.45,.70);puff.castShadow=false;}
+      living.push({kind:'cloud',object:cloud,origin:x,phase:z});
+    }
+    for(const [x,z] of [[7,-16],[-7,11]]){
+      const bird=new T.Group();bird.position.set(x,5,z);scene.add(bird);
+      for(const side of [-1,1]){const wing=box(.35,.025,.10,palette.ink,side*.16,0,0,bird);wing.rotation.z=side*.3;wing.castShadow=false;}
+      living.push({kind:'bird',object:bird,origin:x,phase:z});
+    }
     const avatar=new T.Group();avatar.name='RoadAvatar';scene.add(avatar);avatar.visible=false;
     const ring=new T.Mesh(new T.RingGeometry(.37,.39,40),new T.MeshBasicMaterial({color:palette.blue,transparent:true,opacity:.9,side:T.DoubleSide}));ring.rotation.x=-Math.PI/2;scene.add(ring);
     const camera=new T.OrthographicCamera(-12,12,10,-10,.1,150);
     const cameraOffset=CAMERA_OFFSET.clone();
     let cameraFocus=path.getPointAt(0),openingStart=null,model=null,lastT=0,elapsed=0,frameId,gait=null;
+    const scenicOffset=new T.Vector3();
     let nearTime=0,lastError=null,contextLost=false;
     let zoom=1,activeNear=null,environmentDim=0,profile=CAMERA_PROFILES.desktop;
     let width=1,height=1;const clock=new T.Clock();
@@ -375,7 +403,8 @@
       if(!response.ok)throw new Error('hamster.glb HTTP '+response.status);
       bytes=await response.arrayBuffer();}
       const gltf=await new GLTFLoader().parseAsync(bytes,'assets/');
-        model=gltf.scene;const bounds=new T.Box3().setFromObject(model),size=bounds.getSize(new T.Vector3()),center=bounds.getCenter(new T.Vector3());
+        model=gltf.scene;styleHamster(model);
+        const bounds=new T.Box3().setFromObject(model),size=bounds.getSize(new T.Vector3()),center=bounds.getCenter(new T.Vector3());
         if(!Number.isFinite(size.y)||size.y<=0)throw new Error('Invalid hamster model bounds');
         const scale=1.6/size.y;model.scale.setScalar(scale);model.position.set(-center.x*scale,-bounds.min.y*scale,-center.z*scale);
         // 元GLBにはマテリアル名が無い。Shirt / ShirtSleeve / Cuff / Collar /
@@ -403,9 +432,15 @@
       frameId=requestAnimationFrame(frame);const dt=Math.min(clock.getDelta(),.25);if(document.hidden||contextLost)return;
       try{
       controller.tick(dt);
-      const state=controller.snapshot,t=state.t,p=path.getPointAt(t),tan=path.getTangentAt(t);
+      const state=controller.snapshot,t=Number.isFinite(state.t)?Math.max(0,Math.min(1,state.t)):0,p=path.getPointAt(t),tan=path.getTangentAt(t);
       const changed=Math.abs(t-lastT)>.00001,moving=state.phase==='walking'&&changed;
       elapsed+=dt;
+      for(const item of living){
+        const time=state.reduced?0:elapsed;
+        if(item.kind==='tree')item.object.rotation.z=state.reduced?0:Math.sin(time*.8+item.phase)*.035;
+        else if(item.kind==='cloud')item.object.position.x=item.origin+(state.reduced?0:Math.sin(time*.07+item.phase)*1.8);
+        else{item.object.position.x=item.origin+(state.reduced?0:Math.sin(time*.3+item.phase)*1.7);item.object.children.forEach((wing,i)=>wing.rotation.z=state.reduced?(i?1:-1)*.3:(i?1:-1)*Math.sin(time*5)*.45);}
+      }
       avatar.position.copy(p);avatar.position.y=.045+(moving&&!state.reduced?Math.abs(Math.sin(elapsed*13))*.045:0);
       gait?.(dt,moving,state.reduced);
       const forward=t>=lastT?1:-1;
@@ -441,8 +476,27 @@
         avatar.visible=!!model;avatar.scale.setScalar(1);
         zoom=state.reduced?1:zoom+(desiredZoom-zoom)*(1-Math.exp(-dt*4.5));
       }
-      if(state.reduced||!camera.position.lengthSq())cameraFocus.copy(focus);else cameraFocus.lerp(focus,1-Math.exp(-dt*7));
+      // スクロール座標はここでは一切使わない。パス上の現在位置へ毎フレーム直接固定。
+      // 過去のカメラ位置を追いかけず、接近演出の相対オフセットだけを補間する。
+      if(['loading','intro','opening'].includes(state.phase))cameraFocus.copy(focus);
+      else{
+        const offset=focus.clone().sub(p);offset.clampLength(0,6);
+        if(state.reduced)scenicOffset.copy(offset);else scenicOffset.lerp(offset,1-Math.exp(-dt*7));
+        cameraFocus.copy(p).add(scenicOffset);
+      }
       camera.position.copy(cameraFocus).add(cameraOffset);camera.lookAt(cameraFocus);camera.zoom=zoom;camera.updateProjectionMatrix();camera.updateMatrixWorld();
+      if(!['loading','intro','opening'].includes(state.phase)){
+        // 大きなスクロールジャンプでも頭と足を画面内へ。補正は視線と平行な平面内のみ。
+        const center=p.clone().setY(.85).project(camera);
+        const dx=center.x-Math.max(-.76,Math.min(.76,center.x)),dy=center.y-Math.max(-.68,Math.min(.68,center.y));
+        if(dx||dy){
+          const shift=new T.Vector3().setFromMatrixColumn(camera.matrixWorld,0).multiplyScalar(dx*(camera.right-camera.left)/(2*zoom));
+          shift.addScaledVector(new T.Vector3().setFromMatrixColumn(camera.matrixWorld,1),dy*(camera.top-camera.bottom)/(2*zoom));
+          cameraFocus.add(shift);camera.position.add(shift);camera.lookAt(cameraFocus);camera.updateMatrixWorld();
+        }
+        const actual=p.clone().setY(.85).project(camera);canvas.dataset.avatarScreen=actual.x.toFixed(4)+','+actual.y.toFixed(4);
+        canvas.dataset.cameraAnchor=t.toFixed(4);
+      }
       if(markerT!==null){
         const age=(performance.now()-markerStarted)/550;
         if(age>=1){markerT=null;destinationMarker.hidden=true;}
@@ -472,6 +526,31 @@
     }
     frame();
 
+    function styleHamster(root){
+      // GLBは変更しない。元モデルの部品名とHead座標系を使って加工する。
+      // HeadShape/ShortFur/Hand/Finger=生成りの毛、Chin/Muzzle=白い腹側の毛。
+      root.traverse(o=>{
+        if(!o.material)return;const name=o.name.replace(/_\d+$/,'');
+        if(['HeadShape','ShortFur','Ear','InnerEar','Hand','Finger','Muzzle','Chin','Nose','NoseTip'].includes(name)){
+          o.material=o.material.clone();o.material.vertexColors=false;
+          o.material.color.set(['Muzzle','Chin'].includes(name)?0xfff8e9:['Nose','NoseTip','InnerEar'].includes(name)?0xe8b4a8:0xf3dba7);
+          o.material.roughness=.92;
+        }
+        // Ear/InnerEarは小さく丸くし、付け根を頭へ寄せる。アニメーションの親Headは維持。
+        if(['Ear','InnerEar'].includes(name)){o.scale.multiply(new T.Vector3(.78,.58,.85));o.position.x*=.90;o.position.y-=.055;}
+        // Muzzleの奥行きを半分以下へ。鼻・口・ひげも同じ平たい顔面に揃える。
+        if(name==='Muzzle'){o.position.z=.49;o.scale.z*=.42;}
+        if(['Nose','NoseTip'].includes(name)){o.position.z=.575;o.scale.multiplyScalar(.85);}
+        if(['Mouth','Philtrum','Whisker'].includes(name)){o.geometry=o.geometry.clone();o.geometry.scale(1,1,.79);o.position.z*=.79;}
+      });
+      const head=root.getObjectByName('Head');if(!head)return;
+      for(const side of [-1,1]){
+        const cheek=new T.Mesh(new T.SphereGeometry(.34,20,14),new T.MeshStandardMaterial({color:0xffedc8,roughness:.94}));
+        cheek.name=side<0?'CheekPouchL':'CheekPouchR';cheek.position.set(side*.48,-.22,.40);cheek.scale.set(1,.86,.83);head.add(cheek);
+      }
+      const bib=new T.Mesh(new T.SphereGeometry(.37,20,14),new T.MeshStandardMaterial({color:0xfffbef,roughness:1}));
+      bib.name='CreamUnderside';bib.position.set(0,-.35,.38);bib.scale.set(1,.60,.45);head.add(bib);
+    }
     function makeGait(root){
       const body=root.getObjectByName('Body');
       if(body&&!root.getObjectByName('LegL')){
@@ -495,8 +574,12 @@
     function createWheel(T,palette){
       const host=$('#wheel-host'),c=$('#wheel'),ws=new T.Scene();
       const wr=new T.WebGLRenderer({canvas:c,alpha:true,antialias:true});wr.setPixelRatio(Math.min(devicePixelRatio||1,1.5));wr.outputColorSpace=T.SRGBColorSpace;
-      wr.toneMapping=T.ACESFilmicToneMapping;wr.toneMappingExposure=1.1;
-      ws.add(new T.HemisphereLight(0xffffff,0xbacbd4,2.7));const light=new T.DirectionalLight(0xffffff,2.2);light.position.set(-3,8,8);ws.add(light);
+      wr.toneMapping=T.ACESFilmicToneMapping;wr.toneMappingExposure=1.0;wr.shadowMap.enabled=true;wr.shadowMap.type=T.PCFSoftShadowMap;
+      ws.add(new T.HemisphereLight(0xe6f5ff,0xc6b79c,1.5));const light=new T.DirectionalLight(0xffefd6,3);light.position.set(-3,8,8);light.castShadow=true;light.shadow.mapSize.set(1024,1024);light.shadow.radius=5;light.shadow.normalBias=.025;ws.add(light);
+      const rim=new T.DirectionalLight(0xb9e7ff,1.2);rim.position.set(4,3,-4);ws.add(rim);
+      // Transparent shadow catcher blends the physical floor into the lit CSS backdrop without a rectangular canvas edge.
+      light.shadow.mapSize.set(256,256);light.shadow.radius=6;
+      const floor=new T.Mesh(new T.PlaneGeometry(200,200),new T.ShadowMaterial({color:0x657778,opacity:.20}));floor.rotation.x=-Math.PI/2;floor.position.y=-2.85;floor.receiveShadow=true;ws.add(floor);
       const wc=new T.PerspectiveCamera(36,1,.1,60);wc.position.set(3,1.6,12);wc.lookAt(0,-.1,0);
       const outer=new T.Group();outer.rotation.y=-.18;outer.rotation.z=.12;ws.add(outer);
       const wheelGroup=new T.Group();outer.add(wheelGroup);
@@ -525,7 +608,11 @@
         const entry=paperEntries[i%paperEntries.length]||{project:{title:'Ayaka'},image:null};
         const theta=i*Math.PI*2/count,pivot=new T.Group();pivot.rotation.z=-theta;wheelGroup.add(pivot);
         // Panels form a lightly twisted paper band; every face is an application screenshot.
-        const card=new T.Mesh(new T.PlaneGeometry(1.39,2.08,1,1),new T.MeshStandardMaterial({map:paperTexture(entry),roughness:.9,side:T.DoubleSide}));
+        const paper=new T.BoxGeometry(1.39,2.08,.032,12,18,1),vertices=paper.attributes.position;
+        for(let j=0;j<vertices.count;j++){const x=vertices.getX(j),y=vertices.getY(j);vertices.setZ(j,vertices.getZ(j)+.075*(x/.695)**2+.028*Math.sin(y*2.4+theta));}paper.computeVertexNormals();
+        const faceMaterial=new T.MeshStandardMaterial({map:paperTexture(entry),roughness:.83});
+        const edgeMaterial=new T.MeshStandardMaterial({color:0xe3d8c4,roughness:.95});
+        const card=new T.Mesh(paper,[edgeMaterial,edgeMaterial,edgeMaterial,edgeMaterial,faceMaterial,faceMaterial]);card.castShadow=true;card.receiveShadow=true;
         card.position.y=radius;card.rotation.x=-Math.PI/2;card.rotation.y=Math.sin(theta)*.1;pivot.add(card);
         cards.push({pivot,entry,theta});
       }
@@ -546,17 +633,31 @@
           destination=desired+Math.floor((spin-desired)/(Math.PI*2)-1)*Math.PI*2;
         }else destination=null;
       });
-      let wheelTime=0;
+      let wheelTime=0,lastStep=0,audioContext=null,soundOn=false;
+      const soundButton=$('#sound-toggle');
+      soundButton.addEventListener('click',async()=>{
+        try{audioContext??=new (window.AudioContext||window.webkitAudioContext)();await audioContext.resume();soundOn=!soundOn;soundButton.setAttribute('aria-pressed',String(soundOn));soundButton.textContent=soundOn?'音をオフ':'音をオン';soundButton.setAttribute('aria-label',soundOn?'足音と息づかいの音をオフにする':'足音と息づかいの音をオンにする');}
+        catch(e){console.error('Sound unavailable',e);soundButton.textContent='音は利用できません';}
+      });
+      function footstep(){
+        if(!soundOn||!audioContext||audioContext.state!=='running')return;
+        const at=audioContext.currentTime,osc=audioContext.createOscillator(),gain=audioContext.createGain();osc.type='sine';osc.frequency.setValueAtTime(115,at);osc.frequency.exponentialRampToValueAtTime(45,at+.07);gain.gain.setValueAtTime(.025,at);gain.gain.exponentialRampToValueAtTime(.0001,at+.08);osc.connect(gain).connect(audioContext.destination);osc.start(at);osc.stop(at+.09);
+        if(Math.floor(wheelTime*3)%6===0){const breath=audioContext.createOscillator(),level=audioContext.createGain();breath.type='sine';breath.frequency.value=220;level.gain.setValueAtTime(.0001,at);level.gain.linearRampToValueAtTime(.004,at+.10);level.gain.linearRampToValueAtTime(0,at+.30);breath.connect(level).connect(audioContext.destination);breath.start(at);breath.stop(at+.31);}
+      }
       return {setHamster,render(dt,reduced){
         if(host.hidden||(!$('#outbound').open&&$('#intro').hidden))return;
         const w=host.clientWidth||380,h=host.clientHeight||330;
         if(c.width!==Math.round(w*wr.getPixelRatio())||c.height!==Math.round(h*wr.getPixelRatio())){wr.setSize(w,h,false);wc.aspect=w/Math.max(1,h);wc.updateProjectionMatrix();}
         wheelTime+=dt;
+        const progress=Math.min(1,controller.introProgress);$('#intro-progress').setAttribute('aria-valuenow',String(Math.round(progress*100)));$('#intro-progress span').style.transform='scaleX('+progress+')';
+        $('#intro-status').textContent=progress<1?'街を準備しています':$('#intro').getAttribute('aria-disabled')==='false'?'タップして街へ':'ハムスターを準備しています';
         if(!reduced){
-          if(destination!==null)spin+=(destination-spin)*(1-Math.exp(-dt*5.5));else spin-=dt*.65;
+          if(destination!==null)spin+=(destination-spin)*(1-Math.exp(-dt*5.5));else spin-=dt*(.66+.12*Math.sin(wheelTime*2.1));
           wheelGroup.rotation.z=spin;
           if(running)hamster.position.y=-2.15+Math.abs(Math.sin(wheelTime*11))*.04;
+          if(running){hamster.scale.y=1+Math.sin(wheelTime*3.2)*.012;if(wheelTime-lastStep>.28){footstep();lastStep=wheelTime;}}
         }
+        else hamster.scale.y=1;
         runnerGait?.(dt,true,reduced);
         wr.render(ws,wc);
       }};
