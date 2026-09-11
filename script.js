@@ -131,10 +131,10 @@ window.PORTFOLIO = {
   function showGoal(){
     if(state.phase!=='walking'||goalSeen)return;
     const animate=!state.reduced&&state.t>=.995;
-    goalSeen=true;nearHouse(null);phase('goal');emit('town:goal',{active:state.t>=.995});renderStamps();
+    goalSeen=state.t>=.995;nearHouse(null);phase('goal');emit('town:goal',{active:state.t>=.995});renderStamps();
     goal.classList.toggle('is-introducing',animate);goal.showModal();$('#skip-goal').hidden=!animate;
     $('#close-goal').focus({preventScroll:true});clearTimeout(goalTimer);
-    goalTimer=setTimeout(()=>{goal.classList.remove('is-introducing');$('#skip-goal').hidden=true;},animate?1600:0);
+    goalTimer=setTimeout(()=>{goal.classList.remove('is-introducing');$('#skip-goal').hidden=true;},animate?2200:0);
   }
   function closeGoal(){clearTimeout(goalTimer);goal.close();goal.classList.remove('is-introducing');emit('town:goal',{active:false});phase('walking');$('#town').focus({preventScroll:true});}
   $('#close-goal').addEventListener('click',closeGoal);
