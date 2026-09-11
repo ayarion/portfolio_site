@@ -16,22 +16,29 @@
   const CAMERA_PROFILES={phone:{half:7.1,ahead:.07,house:.72,approach:.85,offset:[0,14,22]},tablet:{half:8.4,ahead:.05,house:.60,approach:.90,offset:[3,14,21]},desktop:{half:null,ahead:0,house:.40,approach:1,offset:[9,14,18]}};
   try {
     const palette={
-      ground:0xe5eee8,road:0x42bde9,roadEdge:0xc8eff6,white:0xfffdf6,
+      ground:0xdce8c6,road:0x42bde9,roadEdge:0xc8eff6,white:0xfffdf6,
       wood:0xbba187,woodLight:0xe7d9c4,ink:0x294956,trunk:0xa3ada8,
       leaf:0x8fcf93,leafBlue:0x89cdd1,metal:0x739fac,
       blue:0x409fc7,peach:0xe89e80,green:0x72af8a,yellow:0xe7bb60,
-      red:0xc74343,rubber:0x71878e,glass:0xd8eaf0,shadow:0x425e68
+      red:0xc74343,rubber:0x71878e,glass:0xd8eaf0,shadow:0x5c5140
     };
     const canvas=$('#town'),container=$('#world'),scene=new T.Scene();
-    scene.background=new T.Color(palette.ground);scene.fog=new T.Fog(palette.ground,65,125);
+    // 空は地面と別色。上ほど水色を濃くしたグラデーションで、地面との境に抜けを作る。
+    const skyCanvas=document.createElement('canvas');skyCanvas.width=2;skyCanvas.height=256;
+    const skyCtx=skyCanvas.getContext('2d'),skyGrad=skyCtx.createLinearGradient(0,0,0,256);
+    skyGrad.addColorStop(0,'#a8dcf2');skyGrad.addColorStop(.55,'#d6eef8');skyGrad.addColorStop(1,'#f4f4e9');
+    skyCtx.fillStyle=skyGrad;skyCtx.fillRect(0,0,2,256);
+    const skyTexture=new T.CanvasTexture(skyCanvas);skyTexture.colorSpace=T.SRGBColorSpace;
+    scene.background=skyTexture;scene.fog=new T.Fog(0xeaf4f2,72,140);
     const renderOrigin=new T.Vector3();
     const renderer=new T.WebGLRenderer({canvas,antialias:true});
     renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.8));
     renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;
-    renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;
-    scene.add(new T.HemisphereLight(0xd9f0ff,0xc3ccb0,1.65));
-    const fill=new T.DirectionalLight(0xc3e8ff,.65);fill.position.set(10,8,-10);scene.add(fill);
-    const sun=new T.DirectionalLight(0xffe8ca,2.5);sun.position.set(-12,24,15);sun.castShadow=true;
+    renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.24;
+    // 暖色の環境光と強めの日差しで、灰色に沈んで見えていた街を晴天の明るさに寄せる。
+    scene.add(new T.HemisphereLight(0xfff6e8,0xd9d2bc,1.9));
+    const fill=new T.DirectionalLight(0xd8ecff,.45);fill.position.set(10,8,-10);scene.add(fill);
+    const sun=new T.DirectionalLight(0xfff1d8,2.9);sun.position.set(-12,24,15);sun.castShadow=true;
     sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-18,right:18,top:18,bottom:-18,near:.5,far:70});
     sun.shadow.normalBias=.04;sun.shadow.bias=-.0002;sun.shadow.radius=5;scene.add(sun);scene.add(sun.target);
     const materials=new Map();
@@ -654,16 +661,55 @@
           destination=desired+Math.floor((spin-desired)/(Math.PI*2)-1)*Math.PI*2;
         }else destination=null;
       });
-      let wheelTime=0,lastStep=0,audioContext=null,soundOn=false;
-      const soundButton=$('#sound-toggle');
+      let wheelTime=0,lastStep=0,audioContext=null,master=null,noiseBuffer=null,soundOn=false;
+      const soundButton=$('#sound-toggle'),SOUND_KEY='ayaka-town-sound-v1';
+      const readSound=()=>{try{return localStorage.getItem(SOUND_KEY)==='on'}catch(e){return false}};
+      function paintSoundButton(){
+        soundButton.setAttribute('aria-pressed',String(soundOn));
+        soundButton.textContent=soundOn?'音をオフ':'音をオン';
+        soundButton.setAttribute('aria-label',soundOn?'足音と息づかいの音をオフにする':'足音と息づかいの音をオンにする');
+      }
+      async function startAudio(){
+        if(!audioContext){
+          audioContext=new (window.AudioContext||window.webkitAudioContext)();
+          master=audioContext.createGain();master.gain.value=.9;master.connect(audioContext.destination);
+          // 紙をこするような足音に使う短いノイズ。小型スピーカーで鳴る帯域だけを通す。
+          const frames=Math.floor(audioContext.sampleRate*.2);
+          noiseBuffer=audioContext.createBuffer(1,frames,audioContext.sampleRate);
+          const data=noiseBuffer.getChannelData(0);
+          for(let i=0;i<frames;i++)data[i]=(Math.random()*2-1)*(1-i/frames);
+        }
+        await audioContext.resume();
+      }
       soundButton.addEventListener('click',async()=>{
-        try{audioContext??=new (window.AudioContext||window.webkitAudioContext)();await audioContext.resume();soundOn=!soundOn;soundButton.setAttribute('aria-pressed',String(soundOn));soundButton.textContent=soundOn?'音をオフ':'音をオン';soundButton.setAttribute('aria-label',soundOn?'足音と息づかいの音をオフにする':'足音と息づかいの音をオンにする');}
-        catch(e){console.error('Sound unavailable',e);soundButton.textContent='音は利用できません';}
+        try{
+          await startAudio();soundOn=!soundOn;paintSoundButton();
+          try{localStorage.setItem(SOUND_KEY,soundOn?'on':'off')}catch(e){/* 保存できなくても今回の操作は有効 */}
+          if(soundOn)footstep();
+        }catch(e){console.error('Sound unavailable',e);soundButton.textContent='音は利用できません';}
       });
+      if(readSound())startAudio().then(()=>{soundOn=true;paintSoundButton()}).catch(()=>{});
       function footstep(){
         if(!soundOn||!audioContext||audioContext.state!=='running')return;
-        const at=audioContext.currentTime,osc=audioContext.createOscillator(),gain=audioContext.createGain();osc.type='sine';osc.frequency.setValueAtTime(115,at);osc.frequency.exponentialRampToValueAtTime(45,at+.07);gain.gain.setValueAtTime(.025,at);gain.gain.exponentialRampToValueAtTime(.0001,at+.08);osc.connect(gain).connect(audioContext.destination);osc.start(at);osc.stop(at+.09);
-        if(Math.floor(wheelTime*3)%6===0){const breath=audioContext.createOscillator(),level=audioContext.createGain();breath.type='sine';breath.frequency.value=220;level.gain.setValueAtTime(.0001,at);level.gain.linearRampToValueAtTime(.004,at+.10);level.gain.linearRampToValueAtTime(0,at+.30);breath.connect(level).connect(audioContext.destination);breath.start(at);breath.stop(at+.31);}
+        const at=audioContext.currentTime;
+        // 足音：紙を蹴る擦過音（可聴域のバンドパス）＋輪郭をつける短い胴鳴り。
+        const noise=audioContext.createBufferSource();noise.buffer=noiseBuffer;
+        const band=audioContext.createBiquadFilter();band.type='bandpass';band.frequency.value=760;band.Q.value=.9;
+        const noiseGain=audioContext.createGain();
+        noiseGain.gain.setValueAtTime(.16,at);noiseGain.gain.exponentialRampToValueAtTime(.0006,at+.11);
+        noise.connect(band).connect(noiseGain).connect(master);noise.start(at);noise.stop(at+.13);
+        const body=audioContext.createOscillator(),bodyGain=audioContext.createGain();
+        body.type='triangle';body.frequency.setValueAtTime(330,at);body.frequency.exponentialRampToValueAtTime(170,at+.07);
+        bodyGain.gain.setValueAtTime(.09,at);bodyGain.gain.exponentialRampToValueAtTime(.0005,at+.09);
+        body.connect(bodyGain).connect(master);body.start(at);body.stop(at+.1);
+        if(Math.floor(wheelTime*3)%6===0){
+          // 息づかい：鼻から抜ける空気。こちらもノイズなので小型スピーカーで鳴る。
+          const breath=audioContext.createBufferSource();breath.buffer=noiseBuffer;
+          const shape=audioContext.createBiquadFilter();shape.type='bandpass';shape.frequency.value=1500;shape.Q.value=1.6;
+          const level=audioContext.createGain();
+          level.gain.setValueAtTime(.0001,at);level.gain.linearRampToValueAtTime(.05,at+.08);level.gain.linearRampToValueAtTime(.0001,at+.26);
+          breath.connect(shape).connect(level).connect(master);breath.start(at);breath.stop(at+.27);
+        }
       }
       return {setHamster,render(dt,reduced){
         if(host.hidden||(!$('#outbound').open&&$('#intro').hidden))return;
