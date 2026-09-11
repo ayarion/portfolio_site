@@ -23,11 +23,11 @@
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" sizes="180x180">
-  <link rel="stylesheet" href="style.css?v=20260911-town">
-  <script defer src="script.js?v=20260911-town"></script>
+  <link rel="stylesheet" href="style.css?v=20260911-goal">
+  <script defer src="script.js?v=20260911-goal"></script>
   <script defer src="vendor/three.bundle.js"></script>
-  <script defer src="assets/portfolio-type.js"></script>
-  <script defer src="world.js?v=20260911-town"></script>
+  <script defer src="assets/portfolio-type.js?v=20260911-goal"></script>
+  <script defer src="world.js?v=20260911-goal"></script>
 </head>
 <body class="is-intro">
   <a class="skip-link" href="#menu">メニューから作品を見る</a>
@@ -55,7 +55,7 @@
     <button data-house="projects"><span>02</span> 個人制作作品</button>
     <button data-house="team"><span>03</span> チーム制作作品</button>
     <button data-house="contact"><span>04</span> スキル / お問い合わせ</button>
-  </nav><div class="menu-extras"><button class="reset" id="reset">↺ はじめに戻る</button><button id="help" class="help" aria-label="操作方法を開く">?</button></div></dialog>
+  </nav><div class="menu-extras"><button class="reset" id="reset">↺ はじめに戻る</button><button id="view-stamps">スタンプカード</button><button id="reset-stamps">スタンプをリセット</button><button id="help" class="help" aria-label="操作方法を開く">?</button></div></dialog>
   <div class="intro-layer" id="intro" role="button" tabindex="0" aria-disabled="true" aria-label="ハムスターの回し車。4秒後、クリックまたはEnterで街へ進む">
     <div id="wheel-slot" class="wheel-slot"></div>
     <div class="intro-meter"><div id="intro-progress" role="progressbar" aria-label="オープニング" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span></span></div><p id="intro-status" role="status">街を準備しています</p></div>
@@ -65,6 +65,7 @@
   <div class="whiteout" id="whiteout" aria-hidden="true"></div>
   <dialog id="panel" aria-labelledby="panel-title"><div class="panel-top"><span id="panel-kicker" class="eyebrow"></span><button class="close" id="close-panel" aria-label="閉じて家の前に戻る">×</button></div><div id="panel-body"></div></dialog>
   <dialog id="outbound" aria-labelledby="outbound-title"><p class="eyebrow">ON MY WAY</p><h2 id="outbound-title">作品を開いています</h2><div id="outbound-wheel-slot"></div><p id="outbound-status" role="status">ハムスターも一緒に、次のページへ。</p></dialog>
+  <dialog id="goal" aria-labelledby="goal-title"><div class="panel-top"><span class="eyebrow">A LITTLE WALK</span><button id="close-goal" class="close" aria-label="閉じてゴールに留まる">×</button></div><button id="skip-goal" class="back">演出をスキップ</button><h2 id="goal-title">Thank you for walking</h2><div class="goal-result"><p id="goal-message"></p><div id="stamp-card"></div><div id="goal-links" class="panel-links"></div></div></dialog>
   <p class="sr-only" id="announcement" aria-live="polite"></p>
   <noscript><p class="noscript">街を歩くにはJavaScriptを有効にしてください。<a href="https://github.com/ayarion">GitHub</a> / <a href="https://tsukuriba.org/togame/">togame</a> / <a href="https://tsukuriba.org/OjiMate/">OjiMate</a> / <a href="https://tsukuriba.org/kinto-log/">Kinto-Log</a> / <a href="https://tsukuriba.org/mersampo/">mersampo</a></p></noscript>
 </body>

@@ -53,7 +53,7 @@ window.PORTFOLIO = {
   const motion=matchMedia('(prefers-reduced-motion: reduce)');
   // 唯一の実進行度。アバターの座標・スクロール位置・UIはここから導出します。
   const state={t:0,phase:'loading',near:null,activeHouse:null,reduced:motion.matches};
-  let targetT=null, expectedScroll=null, range=1, transitionGeneration=0, previousScroll=window.scrollY;
+  let targetT=null, range=1, transitionGeneration=0, previousScroll=window.scrollY;
   let returnT=0, opener=null, outboundTimer=null, navigating=false, lastProject=null;
   let introReady=false,hasWalked=false;
   const introDeadline=performance.now()+4000,menu=$('#menu');
@@ -68,7 +68,7 @@ window.PORTFOLIO = {
   const announce=text=>{$('#announcement').textContent=text};
   function phase(value){
     state.phase=value;document.body.dataset.phase=value;
-    document.body.classList.toggle('is-locked',['entering','inside','leaving','menu'].includes(value));
+    document.body.classList.toggle('is-locked',['entering','inside','leaving','menu','goal'].includes(value));
     if(value!=='walking'){targetT=null;emit('town:clear-input');}
     emit('town:state',{...state});
   }
@@ -81,23 +81,18 @@ window.PORTFOLIO = {
       if(b.dataset.house===state.near)b.setAttribute('aria-current','step');else b.removeAttribute('aria-current');
     });
   }
-  function writeScroll(){
-    if(state.reduced)return; // 動きを減らす設定では自動スクロール追従を行わない
-    const y=Math.round(state.t*range);
-    if(Math.abs(window.scrollY-y)<1)return;
-    expectedScroll=y;window.scrollTo({top:y,behavior:'instant'});
-  }
+  // Scroll is input only. Tap, focus, dialog and camera never write page scroll.
   function setProgress(value,source='input'){
     if(!Number.isFinite(value))return;
     if(!hasWalked&&state.phase==='walking'&&['input','scroll'].includes(source)&&Math.abs(state.t-value)>.0001){hasWalked=true;$('#walk-instructions').classList.add('is-used');}
     state.t=Math.max(0,Math.min(1,value));
-    if(source!=='scroll')writeScroll();
     updateProgressUI();emit('town:progress',{t:state.t,source});
+    if(state.t<.94)goalSeen=false;
+    if(state.t>=.995&&state.phase==='walking')showGoal();
   }
   function refreshRange(){
     range=Math.max(1,document.documentElement.scrollHeight-window.innerHeight);
     previousScroll=window.scrollY;
-    if(!['loading','intro'].includes(state.phase))writeScroll();
   }
   function seek(value){
     if(!['opening','walking'].includes(state.phase)||!Number.isFinite(value))return;
@@ -122,6 +117,33 @@ window.PORTFOLIO = {
     else if(prompt.contains(document.activeElement))$('#town').focus({preventScroll:true});
     updateProgressUI();emit('town:near',stop||null);
   }
+
+  const stampKey='ayaka-town-stamps-v1',visited=new Set(),goal=$('#goal');
+  let goalSeen=false,goalTimer=null;
+  try{const saved=JSON.parse(localStorage.getItem(stampKey)||'[]');if(Array.isArray(saved))saved.forEach(id=>{if(stops.some(s=>s.id===id))visited.add(id)});}catch(e){console.error('Stamp storage read failed',e);}
+  function saveStamps(){try{localStorage.setItem(stampKey,JSON.stringify([...visited]));}catch(e){console.error('Stamp storage write failed; keeping session stamps',e);}}
+  function stamp(id){if(stops.some(s=>s.id===id)){visited.add(id);saveStamps();}}
+  function renderStamps(){
+    $('#stamp-card').innerHTML=stops.map(s=>'<div class="stamp-cell '+(visited.has(s.id)?'stamped':'')+'"><span class="stamp-mark" aria-label="'+(visited.has(s.id)?'訪問済み':'未訪問')+'">'+(visited.has(s.id)?'✓':'—')+'</span><strong>'+escape(s.title)+'</strong>'+(visited.has(s.id)?'<small>訪問しました</small>':'<button class="action" data-return-stop="'+s.id+'">この家の前へ</button>')+'</div>').join('');
+    $('#goal-message').textContent=visited.size===4?'4つのスタンプが揃いました。すべての家に寄ってくれて、ありがとう。':'歩いてくれて、ありがとう。まだ寄っていない家にも、ぜひ。';
+    $('#goal-links').innerHTML=visited.size===4?'<button class="action" data-goal-contact>お問い合わせ</button>'+socialLink('GitHub',data.github)+socialLink('X',data.x):'';
+  }
+  function showGoal(){
+    if(state.phase!=='walking'||goalSeen)return;
+    const animate=!state.reduced&&state.t>=.995;
+    goalSeen=true;nearHouse(null);phase('goal');emit('town:goal',{active:state.t>=.995});renderStamps();
+    goal.classList.toggle('is-introducing',animate);goal.showModal();$('#skip-goal').hidden=!animate;
+    $('#close-goal').focus({preventScroll:true});clearTimeout(goalTimer);
+    goalTimer=setTimeout(()=>{goal.classList.remove('is-introducing');$('#skip-goal').hidden=true;},animate?1600:0);
+  }
+  function closeGoal(){clearTimeout(goalTimer);goal.close();goal.classList.remove('is-introducing');emit('town:goal',{active:false});phase('walking');$('#town').focus({preventScroll:true});}
+  $('#close-goal').addEventListener('click',closeGoal);
+  goal.addEventListener('cancel',e=>{e.preventDefault();closeGoal()});
+  $('#skip-goal').addEventListener('click',()=>{clearTimeout(goalTimer);goal.classList.remove('is-introducing');$('#skip-goal').hidden=true;emit('town:goal',{active:true,skip:true});});
+  $('#reset-stamps').addEventListener('click',()=>{visited.clear();saveStamps();goalSeen=false;announce('スタンプをリセットしました。');$('#reset-stamps').textContent='スタンプをリセットしました';});
+  $('#view-stamps').addEventListener('click',()=>{closeMenu(false);goalSeen=false;showGoal();});
+  goal.addEventListener('click',e=>{const back=e.target.closest('[data-return-stop]');if(back){closeGoal();setProgress(stops.find(s=>s.id===back.dataset.returnStop).t,'return');}if(e.target.closest('[data-goal-contact]')){closeGoal();requestHouse('contact',$('#town'));}});
+
   function ready(ok=true){
     introReady=true;
     if(state.phase==='loading')phase('intro');
@@ -149,7 +171,7 @@ window.PORTFOLIO = {
     nearHouse(null);setProgress(stop.t,'enter');phase('entering');
     const generation=++transitionGeneration;
     emit('town:door',{id,open:true}); // ドア → ホワイトアウト → コンテンツ
-    const show=()=>{if(generation!==transitionGeneration)return;renderSection(id);panel.classList.remove('is-leaving');if(!panel.open)panel.showModal();panel.scrollTop=0;phase('inside');$('#close-panel').focus({preventScroll:true});};
+    const show=()=>{if(generation!==transitionGeneration)return;renderSection(id);panel.classList.remove('is-leaving');if(!panel.open)panel.showModal();panel.scrollTop=0;phase('inside');stamp(id);$('#close-panel').focus({preventScroll:true});};
     if(state.reduced){show();return;}
     setTimeout(()=>{if(generation===transitionGeneration)$('#whiteout').classList.add('is-active');},85);
     setTimeout(show,280);
@@ -253,7 +275,7 @@ window.PORTFOLIO = {
   });
   document.addEventListener('keydown',e=>{
     if(e.key==='Tab'){
-      const dialog=outbound.open?outbound:panel.open?panel:menu.open?menu:null;
+      const dialog=goal.open?goal:outbound.open?outbound:panel.open?panel:menu.open?menu:null;
       if(dialog){
         const controls=[...dialog.querySelectorAll('button:not(:disabled),a[href],input:not(:disabled),textarea:not(:disabled),select:not(:disabled),[tabindex="0"]')].filter(el=>el.getClientRects().length);
         const first=controls[0],last=controls.at(-1),active=document.activeElement;
@@ -270,24 +292,30 @@ window.PORTFOLIO = {
     if(target instanceof Element&&target.closest('button,a,input,textarea,select')&&target.id!=='enter-house')return;
     e.preventDefault();requestHouse(state.near,target);
   });
-  window.addEventListener('wheel',()=>{if(['opening','walking'].includes(state.phase)){targetT=null;emit('town:clear-input');}},{passive:true});
+  window.addEventListener('wheel',e=>{
+    if(!['opening','walking'].includes(state.phase))return;
+    targetT=null;emit('town:clear-input');
+    // Tap navigation does not move the scrollbar. At its limits, wheel input still moves along the road.
+    if((window.scrollY<=0&&e.deltaY<0)||(window.scrollY>=range-1&&e.deltaY>0)){
+      e.preventDefault();setProgress(state.t+e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?innerHeight:1)/range,'scroll');
+    }
+  },{passive:false});
   window.addEventListener('scroll',()=>{
     const y=window.scrollY;
     const delta=y-previousScroll;previousScroll=y;
     if(!['opening','walking'].includes(state.phase))return;
-    if(expectedScroll!==null&&Math.abs(y-expectedScroll)<1.5){expectedScroll=null;return;}
-    expectedScroll=null;targetT=null;emit('town:clear-input');
+    targetT=null;emit('town:clear-input');
     // Reduced mode has no automatic scrolling: relative input prevents a jump after a teleport.
-    setProgress(state.reduced?state.t+delta/range:y/range,'scroll');
+    setProgress(state.t+delta/range,'scroll');
   },{passive:true});
   window.addEventListener('resize',refreshRange);
   window.addEventListener('pageshow',()=>{if(navigating)restoreWheel();if(state.phase==='inside')$('#close-panel').focus({preventScroll:true})});
   motion.addEventListener('change',e=>{
-    state.reduced=e.matches;targetT=null;expectedScroll=null;previousScroll=window.scrollY;++transitionGeneration;
-    if(!state.reduced)writeScroll();
+    state.reduced=e.matches;targetT=null;previousScroll=window.scrollY;++transitionGeneration;
+    if(state.reduced&&goal.open){clearTimeout(goalTimer);goal.classList.remove('is-introducing');$('#skip-goal').hidden=true;emit('town:goal',{active:state.t>=.995,skip:true});}
     if(state.reduced&&navigating){const p=lastProject;restoreWheel();followLink(p);}
     if(['entering','leaving'].includes(state.phase)){
-      if(state.phase==='entering'){renderSection(state.activeHouse);if(!panel.open)panel.showModal();phase('inside');$('#close-panel').focus({preventScroll:true});}
+      if(state.phase==='entering'){renderSection(state.activeHouse);if(!panel.open)panel.showModal();stamp(state.activeHouse);phase('inside');$('#close-panel').focus({preventScroll:true});}
       else{if(panel.open)panel.close();setProgress(returnT);state.activeHouse=null;phase('walking');$('#town').focus({preventScroll:true})}
       $('#whiteout').classList.remove('is-active');panel.classList.remove('is-leaving');
     }

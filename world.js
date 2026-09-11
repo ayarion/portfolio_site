@@ -23,7 +23,8 @@
       red:0xc74343,rubber:0x71878e,glass:0xd8eaf0,shadow:0x425e68
     };
     const canvas=$('#town'),container=$('#world'),scene=new T.Scene();
-    scene.background=new T.Color(palette.ground);
+    scene.background=new T.Color(palette.ground);scene.fog=new T.Fog(palette.ground,65,125);
+    const renderOrigin=new T.Vector3();
     const renderer=new T.WebGLRenderer({canvas,antialias:true});
     renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.8));
     renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;
@@ -51,9 +52,9 @@
     grainCtx.fillStyle='#dedede';grainCtx.fillRect(0,0,128,128);
     for(let i=0;i<650;i++){grainCtx.fillStyle=i%2?'#aaaaaa':'#ffffff';grainCtx.fillRect((i*37)%128,(i*73+Math.floor(i/128)*17)%128,1,1);}
     const grain=new T.CanvasTexture(grainCanvas);grain.wrapS=grain.wrapT=T.RepeatWrapping;grain.repeat.set(28,28);
-    const ground=new T.Mesh(new T.PlaneGeometry(180,180),new T.MeshStandardMaterial({color:palette.ground,roughness:.94,roughnessMap:grain,bumpMap:grain,bumpScale:.018}));
+    const ground=new T.Mesh(new T.PlaneGeometry(2000,2000),new T.MeshStandardMaterial({color:palette.ground,roughness:.94,roughnessMap:grain,bumpMap:grain,bumpScale:.018}));
     ground.rotation.x=-Math.PI/2;ground.position.y=-.065;scene.add(ground);
-    const shadow=new T.Mesh(new T.PlaneGeometry(160,160),new T.ShadowMaterial({color:palette.shadow,opacity:.20}));
+    const shadow=new T.Mesh(new T.PlaneGeometry(2000,2000),new T.ShadowMaterial({color:palette.shadow,opacity:.20}));
     shadow.rotation.x=-Math.PI/2;shadow.position.y=-.025;shadow.receiveShadow=true;scene.add(shadow);
     const PATH_POINTS=[[-1,0,-28],[-3.8,0,-19],[2.8,0,-7],[-2.8,0,7],[2.7,0,21],[.3,0,30]];
     const path=new T.CatmullRomCurve3(PATH_POINTS.map(p=>new T.Vector3(...p)),false,'catmullrom',.38);
@@ -296,6 +297,17 @@
       for(const side of [-1,1]){const wing=box(.35,.025,.10,palette.ink,side*.16,0,0,bird);wing.rotation.z=side*.3;wing.castShadow=false;}
       living.push({kind:'bird',object:bird,origin:x,phase:z});
     }
+
+    const finishPoint=path.getPointAt(1),finishGroup=new T.Group();finishGroup.position.copy(finishPoint);scene.add(finishGroup);
+    const goalBoard=new T.Group();goalBoard.position.set(2.2,0,1.0);finishGroup.add(goalBoard);
+    box(.12,1.5,.12,palette.wood,0,.75,0,goalBoard);box(1.8,.62,.12,palette.woodLight,0,1.6,0,goalBoard);
+    const goalCanvas=document.createElement('canvas');goalCanvas.width=512;goalCanvas.height=180;const goalContext=goalCanvas.getContext('2d');goalContext.fillStyle='#fff8e9';goalContext.fillRect(0,0,512,180);goalContext.fillStyle='#a73e3e';goalContext.font='bold 78px Georgia';goalContext.textAlign='center';goalContext.fillText('GOAL',256,117);const goalTexture=new T.CanvasTexture(goalCanvas);goalTexture.colorSpace=T.SRGBColorSpace;
+    const goalFace=new T.Mesh(new T.PlaneGeometry(1.7,.55),new T.MeshBasicMaterial({map:goalTexture,toneMapped:false}));goalFace.position.set(0,1.6,.07);goalBoard.add(goalFace);
+    const thankYou=new T.Group();thankYou.position.set(0,-2.3,2.5);finishGroup.add(thankYou);thankYou.visible=false;
+    if(window.GOAL_TYPE){for(const [i,data] of window.GOAL_TYPE.entries()){const geometry=new T.ExtrudeGeometry(data.map(d=>new T.Shape().fromJSON(d)),{depth:.20,bevelEnabled:true,bevelThickness:.015,bevelSize:.01,bevelSegments:2,curveSegments:6});geometry.computeBoundingBox();geometry.translate(-(geometry.boundingBox.max.x+geometry.boundingBox.min.x)/2,0,0);const letters=new T.Mesh(geometry,[material(palette.white),material(0x216880)]);letters.position.y=(1-i)*.85;letters.castShadow=true;thankYou.add(letters);}}
+    let goalAnimation=-1,goalSkip=false;
+    window.addEventListener('town:goal',e=>{goalAnimation=e.detail.active?0:-1;goalSkip=!!e.detail.skip;thankYou.visible=e.detail.active;});
+
     const avatar=new T.Group();avatar.name='RoadAvatar';scene.add(avatar);avatar.visible=false;
     const ring=new T.Mesh(new T.RingGeometry(.37,.39,40),new T.MeshBasicMaterial({color:palette.blue,transparent:true,opacity:.9,side:T.DoubleSide}));ring.rotation.x=-Math.PI/2;scene.add(ring);
     const camera=new T.OrthographicCamera(-12,12,10,-10,.1,150);
@@ -332,7 +344,7 @@
     function destinationAt(e){
       const r=canvas.getBoundingClientRect();
       raycaster.setFromCamera(new T.Vector2((e.clientX-r.left)/r.width*2-1,1-(e.clientY-r.top)/r.height*2),camera);
-      const p=new T.Vector3();return raycaster.ray.intersectPlane(groundPlane,p)?nearestRoadT(p):null;
+      const p=new T.Vector3();return raycaster.ray.intersectPlane(groundPlane,p)?nearestRoadT(p.add(renderOrigin)):null;
     }
     function showDestination(t){
       markerT=t;markerStarted=performance.now();destinationMarker.hidden=false;
@@ -422,7 +434,7 @@
     loadHamster();
 
     const projection=new T.Vector3();
-    function screen(p){projection.copy(p).project(camera);return {x:(projection.x*.5+.5)*width,y:(-projection.y*.5+.5)*height};}
+    function screen(p){projection.copy(p).sub(renderOrigin).project(camera);return {x:(projection.x*.5+.5)*width,y:(-projection.y*.5+.5)*height};}
     function dimMaterial(mat,amount){
       const base=mat.userData.base;if(!base)return;
       const gray=base.r*.2126+base.g*.7152+base.b*.0722;
@@ -446,6 +458,8 @@
       const forward=t>=lastT?1:-1;
       if(changed){const angle=Math.atan2(tan.x*forward,tan.z*forward);avatar.rotation.y=state.reduced?angle:avatar.rotation.y+Math.atan2(Math.sin(angle-avatar.rotation.y),Math.cos(angle-avatar.rotation.y))*Math.min(1,dt*11);}
       else if(state.phase==='opening')avatar.rotation.y=Math.atan2(tan.x,tan.z);
+      if(goalAnimation>=0){goalAnimation+=dt;const finish=state.reduced||goalSkip,turn=finish?1:Math.min(1,goalAnimation/.6);avatar.rotation.y=Math.atan2(cameraOffset.x,cameraOffset.z)*turn+Math.atan2(tan.x,tan.z)*(1-turn);avatar.rotation.x=finish?0:Math.sin(Math.min(1,Math.max(0,(goalAnimation-.5)/1.1))*Math.PI)*.28;thankYou.position.y=finish?.12:-2.3+2.42*Math.min(1,Math.max(0,(goalAnimation-.5)/.9));}else avatar.rotation.x=0;
+      goalBoard.rotation.y=Math.atan2(cameraOffset.x,cameraOffset.z);thankYou.rotation.y=goalBoard.rotation.y;
       ring.position.set(p.x,.035,p.z);ring.visible=avatar.visible;
       if(state.phase==='walking'){
         const current=houses.find(h=>h.id===activeNear);
@@ -484,18 +498,22 @@
         if(state.reduced)scenicOffset.copy(offset);else scenicOffset.lerp(offset,1-Math.exp(-dt*7));
         cameraFocus.copy(p).add(scenicOffset);
       }
-      camera.position.copy(cameraFocus).add(cameraOffset);camera.lookAt(cameraFocus);camera.zoom=zoom;camera.updateProjectionMatrix();camera.updateMatrixWorld();
+      // Floating origin: the renderer always sees the hamster near (0,0,0).
+      // Progress moves scenery horizontally, never camera height or page position.
+      renderOrigin.copy(p).setY(0);scene.position.copy(renderOrigin).negate();
+      const localFocus=cameraFocus.clone().sub(renderOrigin);
+      camera.position.copy(localFocus).add(cameraOffset);camera.lookAt(localFocus);camera.zoom=zoom;camera.updateProjectionMatrix();camera.updateMatrixWorld();
       if(!['loading','intro','opening'].includes(state.phase)){
         // 大きなスクロールジャンプでも頭と足を画面内へ。補正は視線と平行な平面内のみ。
-        const center=p.clone().setY(.85).project(camera);
+        const center=p.clone().sub(renderOrigin).setY(.85).project(camera);
         const dx=center.x-Math.max(-.76,Math.min(.76,center.x)),dy=center.y-Math.max(-.68,Math.min(.68,center.y));
         if(dx||dy){
           const shift=new T.Vector3().setFromMatrixColumn(camera.matrixWorld,0).multiplyScalar(dx*(camera.right-camera.left)/(2*zoom));
           shift.addScaledVector(new T.Vector3().setFromMatrixColumn(camera.matrixWorld,1),dy*(camera.top-camera.bottom)/(2*zoom));
-          cameraFocus.add(shift);camera.position.add(shift);camera.lookAt(cameraFocus);camera.updateMatrixWorld();
+          cameraFocus.add(shift);localFocus.add(shift);camera.position.add(shift);camera.lookAt(localFocus);camera.updateMatrixWorld();
         }
-        const actual=p.clone().setY(.85).project(camera);canvas.dataset.avatarScreen=actual.x.toFixed(4)+','+actual.y.toFixed(4);
-        canvas.dataset.cameraAnchor=t.toFixed(4);
+        const actual=p.clone().sub(renderOrigin).setY(.85).project(camera);canvas.dataset.avatarScreen=actual.x.toFixed(4)+','+actual.y.toFixed(4);
+        canvas.dataset.cameraAnchor=t.toFixed(4);canvas.dataset.cameraHeight=camera.position.y.toFixed(4);canvas.dataset.origin=renderOrigin.toArray().join(',');
       }
       if(markerT!==null){
         const age=(performance.now()-markerStarted)/550;
@@ -519,6 +537,9 @@
         prompt.style.transform='translate('+x+'px,'+y+'px) translateX(-50%)';
       }
       const onIntro=['loading','intro'].includes(state.phase);
+      scene.updateMatrixWorld(true);
+      // Explicit viewport reset protects the fixed canvas from stale renderer viewport state.
+      renderer.setViewport(0,0,width,height);renderer.setScissorTest(false);
       if(!onIntro)renderer.render(scene,camera);wheel.render(dt,state.reduced);
       canvas.dataset.render=onIntro?'intro':'active';canvas.dataset.moving=String(moving);canvas.dataset.progress=t.toFixed(4);
       lastT=t;
