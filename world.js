@@ -52,9 +52,12 @@
     function mesh(geometry,color,pos=[0,0,0],parent=scene){
       const m=new T.Mesh(geometry,material(color));m.position.set(...pos);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;
     }
-    const box=(w,h,d,c,x,y,z,p)=>mesh(new T.BoxGeometry(w,h,d),c,[x,y,z],p);
-    const cylinder=(r1,r2,h,c,x,y,z,p,seg=16)=>mesh(new T.CylinderGeometry(r1,r2,h,seg),c,[x,y,z],p);
-    const ball=(r,c,x,y,z,p)=>mesh(new T.SphereGeometry(r,12,10),c,[x,y,z],p);
+    // 小物は同じプリミティブを何度も使うため、ジオメトリを共有する。
+    const geometryCache=new Map();
+    const cached=(key,make)=>geometryCache.get(key)||(geometryCache.set(key,make()),geometryCache.get(key));
+    const box=(w,h,d,c,x,y,z,p)=>mesh(cached('b'+w+'|'+h+'|'+d,()=>new T.BoxGeometry(w,h,d)),c,[x,y,z],p);
+    const cylinder=(r1,r2,h,c,x,y,z,p,seg=16)=>mesh(cached('c'+r1+'|'+r2+'|'+h+'|'+seg,()=>new T.CylinderGeometry(r1,r2,h,seg)),c,[x,y,z],p);
+    const ball=(r,c,x,y,z,p)=>mesh(cached('s'+r,()=>new T.SphereGeometry(r,12,10)),c,[x,y,z],p);
     const grainCanvas=document.createElement('canvas');grainCanvas.width=grainCanvas.height=128;const grainCtx=grainCanvas.getContext('2d');
     grainCtx.fillStyle='#dedede';grainCtx.fillRect(0,0,128,128);
     for(let i=0;i<650;i++){grainCtx.fillStyle=i%2?'#aaaaaa':'#ffffff';grainCtx.fillRect((i*37)%128,(i*73+Math.floor(i/128)*17)%128,1,1);}
@@ -109,13 +112,35 @@
         }
       }
       function windowPane(x,y,w=.62,h=.70,z=1.01,lit=false){
+        // ガラスの奥にカーテン、家具、窓台を重ね、近寄ったときに室内の気配を残す。
         box(w+.12,h+.12,.09,palette.woodLight,x,y,z,g);const pane=box(w,h,.07,lit?warm:palette.glass,x,y,z+.055,g);
         if(lit)pane.material=new T.MeshStandardMaterial({color:warm,emissive:0xffa341,emissiveIntensity:.35,roughness:.8});
         box(.035,h,.09,cream,x,y,z+.10,g);box(w,.035,.09,cream,x,y,z+.10,g);
+        box(w+.18,.065,.19,palette.woodLight,x,y-h/2-.055,z+.13,g);
+        for(const side of [-1,1]){const curtain=box(w*.19,h*.82,.035,lit?0xf0c681:0xd9e2d5,x+side*w*.29,y,z+.085,g);curtain.rotation.z=side*.08;}
+        box(w*.42,h*.24,.06,lit?palette.wood:palette.ink,x,y-h*.20,z+.08,g);
+        for(const side of [-1,1])box(.045,h*.82,.04,cream,x+side*w*.28,y,z+.12,g);
       }
       function gable(w,depth,y,rise,color,x=0,z=0){
         const shape=new T.Shape();shape.moveTo(-w/2,0);shape.lineTo(0,rise);shape.lineTo(w/2,0);shape.closePath();
         return mesh(new T.ExtrudeGeometry(shape,{depth,bevelEnabled:false}),color,[x,y,z-depth/2],g);
+      }
+      function wallCourse(width,height,y,z,color,rows=5){
+        for(let row=0;row<rows;row++){
+          const yy=y-height/2+(row+.5)*height/rows;
+          box(width,.028,.045,color,0,yy,z,g);
+          for(let x=-width/2+.18+(row%2)*.12;x<width/2;x+=.36)box(.018,height/rows-.035,.048,color,x,yy,z+.004,g);
+        }
+      }
+      function roofDetails(width,depth,y,color){
+        // 軒先の厚み、雨どい、棟と繰り返すシングルを共通化する。
+        box(width+.18,.11,depth+.16,palette.woodLight,0,y,0,g);
+        for(let row=0;row<4;row++)for(let x=-width/2+.13+(row%2)*.12;x<width/2;x+=.26){
+          const shingle=box(.24,.028,depth/4+.04,color,x,y+.065+row*.035,-depth/2+(row+.5)*depth/4,g);shingle.rotation.x=.08;
+        }
+        box(width+.22,.075,.07,palette.metal,0,y-.10,depth/2+.06,g);
+        for(const x of [-width/2-.04,width/2+.04])cylinder(.035,.035,.38,palette.metal,x,y-.28,depth/2+.06,g);
+        box(width*.82,.07,.12,palette.woodLight,0,y+.18,0,g);
       }
       box(2.7,.16,2.8,cream,0,.08,.22,g);
       const hinge=new T.Group();hinge.position.set(-.32,.17,1.04);g.add(hinge);
@@ -129,10 +154,19 @@
         box(2.58,.22,2.10,palette.woodLight,0,2.08,0,g);
         box(2.40,.10,1.94,palette.wood,0,2.23,0,g);
         awning(2.50,1.62,1.29,roofColor);
+        roofDetails(2.43,1.98,2.15,roofColor);wallCourse(2.30,1.65,1.08,1.015,0xd6bea1,6);
         windowPane(-.78,1.0,.53,.62);windowPane(.78,1.0,.53,.62);
         label('Ayaka',.62,.26,-.95,.62,1.58);
         box(.055,.5,.055,palette.wood,-.95,.27,1.58,g);
         label('Hello',.42,.42,.92,.52,1.60);
+        // 吊り金具と彫りのあるIntroduceネームプレート。
+        for(const x of [-.78,.78]){cylinder(.035,.035,.34,palette.metal,x,2.30,1.24,g);ball(.06,palette.metal,x,2.13,1.24,g);}
+        const intro=label('Introduce',1.74,.34,0,2.02,1.31);intro.position.z+=.015;
+        box(1.96,.50,.12,palette.wood,0,2.02,1.24,g);box(1.78,.032,.035,palette.woodLight,0,2.25,1.32,g);
+        // 黒板、ベンチ、カップと室内椅子。
+        const blackboard=box(.58,.78,.06,0x31444a,-1.37,.58,1.34,g);blackboard.rotation.z=-.10;box(.68,.07,.09,palette.wood,-1.37,.17,1.34,g);
+        for(const x of [-.46,.46])box(.07,.40,.07,palette.wood,x,.25,1.53,g);box(1.08,.09,.28,palette.wood,0,.47,1.53,g);
+        cylinder(.10,.10,.06,palette.white,-.60,1.13,1.14,g);cylinder(.08,.08,.22,palette.wood,.42,.65,.91,g);box(.35,.33,.34,palette.wood,.42,.85,.86,g);
         for(const [x,z,size,y] of [[-1.25,1.24,.24,.14],[1.19,1.16,.32,.14],[-.72,-.30,.36,2.27],[.15,-.40,.29,2.27],[.73,-.05,.32,2.27],[-1.02,.0,.23,2.27]])plant(x,z,size,y);
       }else if(i===1){
         // 個人制作: 1階建ての路面店、ガラスの大きなショーウィンドウ。
@@ -144,6 +178,14 @@
         box(.065,1.1,1.20,palette.glass,1.22,.92,0,g);
         for(const z of [-.6,0,.6])box(.08,1.20,.045,cream,1.24,.92,z,g);
         awning(2.65,1.77,1.25,roofColor);label('Open',.38,.22,.12,1.12,1.16);
+        roofDetails(2.58,2.05,2.12,roofColor);wallCourse(2.30,1.58,1.02,1.015,0xb8d2d8,5);
+        // ショーウィンドウの棚と小さな制作物、たわむ日よけの支柱。
+        for(const x of [-1.25,1.25]){cylinder(.035,.035,.76,palette.metal,x,1.39,1.25,g);ball(.05,palette.metal,x,1.78,1.25,g);}
+        for(const x of [-.78,.78])for(const y of [.58,.83,1.08]){box(.44,.035,.12,palette.wood,x,y,1.15,g);box(.12,.16,.09,y===.83?palette.peach:palette.blue,x+(y-.8)*.18,y+.10,1.18,g);}
+        const menuBoard=box(.48,.72,.06,palette.ink,1.43,.53,1.35,g);menuBoard.rotation.z=.08;box(.58,.07,.08,palette.wood,1.43,.18,1.35,g);
+        // 自転車はフレーム、二輪、ハンドルだけに絞り、店の小回り感を出す。
+        for(const x of [-.34,.34]){const wheel=ball(.23,palette.rubber,-1.42+x,.27,1.45,g);wheel.scale.z=.18;}
+        box(.62,.045,.05,palette.metal,-1.42,.48,1.45,g);box(.05,.40,.05,palette.metal,-1.15,.45,1.45,g);box(.34,.045,.05,palette.metal,-1.20,.67,1.45,g);
         for(let x=-1.2;x<1.3;x+=.40)for(const z of [1.2,1.57])box(.38,.035,.34,palette.white,x,.18,z,g);
         plant(-1.20,1.48,.27);plant(1.18,1.53,.22);
         box(.30,.33,.18,palette.peach,-.78,.60,1.08,g);box(.24,.23,.18,palette.blue,.78,.55,1.08,g);
@@ -152,6 +194,7 @@
         box(3.0,.10,3.2,palette.green,0,.06,.30,g);
         box(2.62,2.76,2.06,cream,0,1.56,0,g);
         gable(2.94,2.38,2.94,1.02,roofColor);
+        roofDetails(3.06,2.48,3.03,roofColor);wallCourse(2.64,2.67,1.55,1.047,0xd7c9b1,9);
         box(.34,.85,.36,palette.woodLight,.88,3.48,-.55,g);
         for(const y of [.45,.74,1.03,1.32,1.61,1.90,2.19,2.48,2.77])box(2.66,.018,.025,palette.woodLight,0,y,1.047,g);
         for(const x of [-.82,.82]){windowPane(x,2.25,.66,.88,1.055,true);windowPane(x,1.0,.64,.74,1.07,true);}
@@ -170,6 +213,11 @@
           for(const side of [-1,1]){const ear=ball(.052,kind==='rabbit'?palette.white:palette.wood,side*.085,kind==='rabbit'?.18:.015,0,a);ear.scale.y=kind==='rabbit'?2.1:1.6;ball(.018,palette.ink,side*.046,.02,.126,a);}
           ball(.025,palette.peach,0,-.04,.14,a);
         }
+        // 煙突、物干し、遊具、ボール。庭を通り過ぎても暮らしが読める密度にする。
+        box(.38,.92,.38,palette.woodLight,-1.02,3.52,-.54,g);box(.48,.10,.48,palette.ink,-1.02,4.00,-.54,g);
+        for(const x of [-1.28,1.28]){cylinder(.035,.035,1.12,palette.metal,x,.59,-1.23,g);box(2.55,.028,.035,palette.metal,0,1.08,-1.23,g);}
+        for(const x of [-1.00,.93]){box(.06,.70,.06,palette.red,x,.38,1.58,g);box(.72,.06,.10,palette.red,x+.18,.69,1.58,g);}
+        ball(.18,palette.yellow,1.36,.20,1.65,g);plant(-1.43,1.58,.23);plant(1.42,1.48,.26);
       }else{
         // 受付キオスク: 前面の壁を作らず、カウンター越しに中が見える。
         box(2.38,1.90,.14,palette.woodLight,0,1.10,-.90,g);
@@ -179,6 +227,7 @@
         box(2.62,.12,.55,cream,0,1.02,1.12,g);
         box(2.60,.22,2.16,mint,0,2.03,0,g);
         awning(2.64,1.88,1.23,0x79b6a1);
+        roofDetails(2.58,2.12,2.16,0x79b6a1);
         for(const y of [1.15,1.60]){box(1.8,.055,.30,palette.wood,0,y,.10,g);for(let k=0;k<5;k++)cylinder(.075,.06,.23,k%2?cream:0x579886,-.65+k*.32,y+.14,.11,g);}
         // 実メッシュの封筒サイン。参考のブランド名は使わない。
         box(.87,.58,.13,cream,0,2.49,.12,g);
@@ -187,6 +236,12 @@
         label('Contact',.53,.42,1.47,.67,1.12);box(.05,.55,.05,palette.wood,1.47,.28,1.12,g);
         cylinder(.25,.25,.09,palette.woodLight,-1.48,.58,1.35,g);for(const dx of [-.14,.14])box(.055,.48,.055,mint,-1.48+dx,.30,1.35,g);
         plant(.79,1.12,.16,1.09);
+        // 受付のカウンター上：レジ、伝票、カップ、ボトル、吊り下げ照明、スツール。
+        box(.42,.23,.28,palette.ink,-.48,1.22,1.18,g);box(.27,.025,.18,palette.white,.12,1.16,1.19,g);
+        for(let k=0;k<4;k++)cylinder(.055,.05,.30,k%2?palette.peach:palette.green,.48+k*.14,1.28,1.17,g);
+        for(const x of [-.68,.68]){const light=ball(.12,0xffe5a0,x,1.72,1.22,g);light.castShadow=false;cylinder(.018,.018,.38,palette.metal,x,1.94,1.22,g);}
+        for(const x of [-1.48,-1.10]){cylinder(.16,.16,.07,palette.woodLight,x,.16,1.48,g);cylinder(.045,.045,.42,palette.metal,x,.39,1.48,g);}
+        const stand=box(.48,.72,.06,palette.ink,1.45,.50,1.36,g);stand.rotation.z=.08;box(.58,.07,.08,palette.wood,1.45,.16,1.36,g);
       }
       g.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.userData.base=o.material.color.clone();}});
       // Entry path and sign sit beside, never in front of, the door sightline.
@@ -225,26 +280,42 @@
 
     const living=[];
     function roadside(t,offset){return path.getPointAt(t).addScaledVector(normal(t),offset)}
-    function tree(t,offset,scale=1,color=palette.leaf){
+    function tree(t,offset,scale=1,color=palette.leaf,type=0){
       const p=roadside(t,offset),g=new T.Group();g.position.copy(p);g.scale.setScalar(scale);scene.add(g);
       cylinder(.055,.09,1.0,palette.trunk,0,.52,0,g);
-      const crown=ball(.6,color,0,1.53,0,g);crown.scale.set(.86,1.5,.86);
-      living.push({kind:'tree',object:crown,phase:t*29});
-      cylinder(.36,.4,.06,palette.white,0,.02,0,g);
+      // 樹種ごとに枝分かれと葉の重なりを変え、一本道の反復を和らげる。
+      const crowns=[];
+      if(type===0){
+        for(const [x,y,z,r] of [[0,1.52,0,.54],[-.23,1.37,.02,.36],[.25,1.40,-.05,.39]])crowns.push(ball(r,color,x,y,z,g));
+        crowns[0].scale.set(.86,1.36,.86);
+      }else if(type===1){
+        for(const side of [-1,1]){const branch=box(.055,.42,.055,palette.trunk,side*.16,1.03,0,g);branch.rotation.z=-side*.62;}
+        for(const [x,y,z] of [[0,1.63,0],[-.28,1.34,.02],[.28,1.36,-.05]]){const crown=ball(.42,color,x,y,z,g);crown.scale.set(1.16,.78,1.0);crowns.push(crown);}
+      }else{
+        const crown=ball(.54,color,0,1.55,0,g);crown.scale.set(.78,1.78,.78);crowns.push(crown);
+        for(const side of [-1,1])crowns.push(ball(.28,color,side*.20,1.22,.03,g));
+      }
+      crowns.forEach(crown=>living.push({kind:'tree',object:crown,phase:t*29}));
+      cylinder(.36,.4,.06,0x9e815f,0,.02,0,g);
+      for(let k=0;k<5;k++){const a=k*Math.PI*2/5;ball(.09,k%2?palette.leaf:palette.green,Math.cos(a)*.34,.11,Math.sin(a)*.34,g);}
     }
-    [[.015,4,1.1],[.06,6,1.2],[.23,-6.5,.8],[.22,-4.8,1.1],[.25,5,1.35],[.27,6.3,.85],[.44,-4.2,1.25],[.45,-6,1],[.48,4.5,.85],[.55,5.1,1.2],[.59,6,.85],[.73,-4,.95],[.74,-6,1.2],[.77,4.1,.8],[.95,-4.4,1.2],[.99,7.8,1.0]].forEach((v,i)=>tree(...v,i%3===0?palette.leafBlue:palette.leaf));
+    [[.015,4,1.1],[.06,6,1.2],[.23,-6.5,.8],[.22,-4.8,1.1],[.25,5,1.35],[.27,6.3,.85],[.44,-4.2,1.25],[.45,-6,1],[.48,4.5,.85],[.55,5.1,1.2],[.59,6,.85],[.73,-4,.95],[.74,-6,1.2],[.77,4.1,.8],[.95,-4.4,1.2],[.99,7.8,1.0]].forEach((v,i)=>tree(...v,i%3===0?palette.leafBlue:palette.leaf,i%3));
     function lamp(t,offset){
       const p=roadside(t,offset),g=new T.Group();g.position.copy(p);scene.add(g);
-      cylinder(.05,.075,2.6,palette.metal,0,1.3,0,g);box(.57,.055,.065,palette.metal,.22,2.58,0,g);
-      box(.36,.13,.27,palette.white,.46,2.52,0,g);
+      cylinder(.16,.21,.08,palette.woodLight,0,.04,0,g);cylinder(.05,.075,2.6,palette.metal,0,1.3,0,g);box(.57,.055,.065,palette.metal,.22,2.58,0,g);
+      cylinder(.075,.075,.10,palette.metal,.43,2.47,0,g);box(.36,.13,.27,palette.white,.46,2.52,0,g);
+      box(.42,.035,.33,palette.metal,.46,2.63,0,g);ball(.12,0xffebae,.46,2.49,.02,g).castShadow=false;
     }
     [[.07,2.05],[.28,-2.15],[.51,2.3],[.81,-2.1],[.95,2.05]].forEach(v=>lamp(...v));
     function crosswalk(t){
       const p=path.getPointAt(t),g=new T.Group();g.position.copy(p);g.rotation.y=Math.atan2(path.getTangentAt(t).x,path.getTangentAt(t).z);scene.add(g);
       for(let i=0;i<6;i++){const stripe=box(2.6,.015,.16,palette.white,0,.045,-.78+i*.3,g);stripe.castShadow=false;}
+      box(2.92,.016,.085,palette.white,0,.045,-1.05,g); // 停止線
+      const manhole=cylinder(.20,.20,.018,palette.metal,-1.08,.04,.78,g,16);manhole.rotation.x=Math.PI/2;manhole.castShadow=false;
       const signal=new T.Group();signal.position.set(1.9,0,1.2);g.add(signal);
-      cylinder(.045,.06,1.65,palette.metal,0,.82,0,signal);box(.28,.71,.24,palette.ink,0,1.91,0,signal);
+      cylinder(.13,.17,.07,palette.woodLight,0,.04,0,signal);cylinder(.045,.06,1.65,palette.metal,0,.82,0,signal);box(.28,.71,.24,palette.ink,0,1.91,0,signal);
       [palette.red,palette.yellow,palette.green].forEach((c,i)=>ball(.067,c,0,2.12-i*.2,.145,signal));
+      box(.43,.065,.08,palette.metal,.20,2.25,-.03,signal); // 信号腕金具
     }
     [.22,.54,.78].forEach(crosswalk);
     function bench(t,offset){
@@ -258,10 +329,37 @@
       const p=roadside(t,offset),g=new T.Group();g.position.copy(p);g.rotation.y=Math.atan2(path.getTangentAt(t).x,path.getTangentAt(t).z);scene.add(g);
       box(.86,.39,1.62,color,0,.43,0,g);box(.72,.42,.81,color,0,.8,-.15,g);
       box(.63,.3,.025,palette.glass,0,.82,.27,g);box(.63,.3,.025,palette.glass,0,.82,-.57,g);
-      for(const x of [-.44,.44])for(const z of [-.5,.5]){const tyre=cylinder(.19,.19,.1,palette.rubber,x,.24,z,g,16);tyre.rotation.z=Math.PI/2;}
+      for(const x of [-.44,.44])for(const z of [-.5,.5]){const tyre=cylinder(.19,.19,.1,palette.rubber,x,.24,z,g,16);tyre.rotation.z=Math.PI/2;const hub=cylinder(.075,.075,.105,palette.woodLight,x,.24,z+(z>0?.06:-.06),g,12);hub.rotation.z=Math.PI/2;}
       [-.26,.26].forEach(x=>box(.16,.09,.03,palette.white,x,.46,.83,g));
+      [-.26,.26].forEach(x=>box(.14,.07,.03,palette.red,x,.48,-.83,g));
+      box(.32,.08,.025,palette.white,0,.40,-.84,g);box(.07,.03,.03,palette.ink,0,.95,-.20,g);
     }
     car(.055,-2.1,palette.red);car(.465,2.1,palette.blue);car(.835,-2.1,palette.yellow);
+    // 道中は抜けを保ち、交通・休憩・公園を小さなまとまりで置く。
+    function curb(t,side,length=2.2){
+      const p=roadside(t,side),g=new T.Group();g.position.copy(p);g.rotation.y=Math.atan2(path.getTangentAt(t).x,path.getTangentAt(t).z);scene.add(g);
+      for(let k=0;k<Math.ceil(length/.35);k++)box(.16,.10,.31,k%2?palette.white:palette.woodLight,0,.05,-length/2+.17+k*.35,g);
+    }
+    [[.17,1.84,2.8],[.34,-1.84,2.2],[.61,1.84,2.6],[.89,-1.84,2.4]].forEach(v=>curb(...v));
+    function busStop(t,offset){
+      const p=roadside(t,offset),g=new T.Group();g.position.copy(p);scene.add(g);
+      box(1.45,.05,.65,palette.metal,0,1.76,0,g);for(const x of [-.62,.62])box(.06,1.7,.06,palette.metal,x,.85,0,g);
+      box(1.32,.72,.04,palette.glass,0,.92,.16,g);box(.62,.10,.28,palette.wood,0,.39,.32,g);box(.10,.55,.05,palette.metal,-.82,1.44,.12,g);box(.38,.22,.04,palette.blue,-.82,1.75,.14,g);
+      cylinder(.13,.16,.06,palette.woodLight,.62,.03,.22,g);box(.44,.44,.05,palette.ink,.62,.32,.24,g);
+    }
+    busStop(.57,-3.5);
+    function utilityPole(t,offset){
+      const p=roadside(t,offset),g=new T.Group();g.position.copy(p);scene.add(g);
+      cylinder(.075,.10,3.8,palette.wood,0,1.9,0,g);box(1.15,.08,.08,palette.woodLight,0,3.35,0,g);
+      for(const x of [-.42,0,.42]){cylinder(.05,.05,.12,palette.white,x,3.24,0,g);const wire=box(.025,.025,2.8,palette.ink,x,3.16,-1.38,g);wire.rotation.x=.035;wire.castShadow=false;}
+    }
+    utilityPole(.39,5.6);utilityPole(.72,5.8);
+    // ちいさな公園: 遊具とゴミ箱をまとめ、道の前面は空ける。
+    const park=roadside(.69,-5.3),parkGroup=new T.Group();parkGroup.position.copy(park);scene.add(parkGroup);
+    for(const x of [-.62,.62]){box(.07,.86,.07,palette.red,x,.43,0,parkGroup);box(1.42,.07,.09,palette.red,0,.81,0,parkGroup);}
+    box(.80,.07,.26,palette.yellow,0,.72,.21,parkGroup);for(const x of [-.28,.28])box(.06,.48,.06,palette.metal,x,.29,.20,parkGroup);
+    cylinder(.18,.15,.46,palette.metal,1.15,.23,.46,parkGroup);ball(.18,palette.ink,1.15,.48,.46,parkGroup);box(.22,.04,.22,palette.green,1.15,.66,.46,parkGroup);
+    for(const [x,z] of [[-1.12,.58],[-.88,.72],[-1.30,.82]]){cylinder(.12,.10,.16,palette.woodLight,x,.08,z,parkGroup);ball(.11,palette.red,x,.28,z,parkGroup);}
     // 赤は3つの小さな集まりに限定し、等間隔にしない。
     const post=roadside(.31,-3.4);cylinder(.07,.08,.85,palette.metal,post.x,.43,post.z);
     box(.48,.48,.38,palette.red,post.x,1.03,post.z);box(.29,.04,.02,palette.ink,post.x,1.09,post.z+.20);
@@ -731,3 +829,4 @@
     }
   }catch(e){console.error(e);error('この環境では3D表示を利用できません。メニューから全作品をご覧いただけます。');}
 })();
+
