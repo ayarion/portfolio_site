@@ -24,7 +24,7 @@ window.PORTFOLIO={
     return '<article class="mini-window reveal" style="--delay:'+index*60+'ms"><div class="window-bar window-bar--'+(kind==='team'?'pink':'blue')+'"><span>'+escapeHTML(project.title)+'.app</span><b>−</b><b>□</b><b>×</b></div><div class="mini-body"><div class="project-image">'+projectImage(project)+'</div><div class="project-copy"><p class="window-kicker">'+(kind==='team'?'TEAM_PROJECT':'PERSONAL_PROJECT')+'</p><h3>'+escapeHTML(project.title)+'</h3><p>'+escapeHTML(project.description)+'</p>'+(blank?'<button class="pill is-disabled" type="button" disabled>リンク準備中</button>':'<a class="pill pill--primary" href="'+escapeHTML(url)+'" target="_blank" rel="noreferrer">作品を開く ↗</a>')+'</div></div></article>';
   };
   $('#personal-projects').innerHTML=data.projects.map((p,i)=>projectWindow(p,i,'personal')).join('');
-  $('#team-project').innerHTML=data.teamProjects.map((p,i)=>'<div class="team-project-grid">'+projectWindow(p,i,'team')+'<div class="team-note"><span aria-hidden="true">👥</span><p>チームでつくった作品</p><small>作品の詳細はリンク先でご覧ください。</small></div></div>').join('');
+  $('#team-project').innerHTML=data.teamProjects.map((p,i)=>'<div class="team-project-grid">'+projectWindow(p,i,'team')+'</div>').join('');
   $('#skill-list').innerHTML=data.skills.map((skill,i)=>'<span class="skill-chip skill-chip--'+(i%4)+'">'+escapeHTML(skill)+'</span>').join('');
 
   const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('is-visible');observer.unobserve(entry.target)}}),{threshold:.16,rootMargin:'0px 0px -8% 0px'});
