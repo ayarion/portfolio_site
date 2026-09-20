@@ -3,71 +3,56 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#e9ecee">
-  <meta name="description" content="ハムスターと水色の道を歩く、Ayakaのポートフォリオ。自己紹介、個人制作、チーム制作、スキルとお問い合わせ。">
-  <title>Ayaka | Portfolio</title>
+  <meta name="theme-color" content="#25bfce">
+  <meta name="description" content="ayarionのポートフォリオ。OS風のウィンドウをスクロールして、自己紹介、個人制作、チーム制作、スキルをめぐります。">
+  <title>ayarion.exe | Portfolio</title>
   <link rel="canonical" href="https://tsukuriba.org/">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="ja_JP">
-  <meta property="og:title" content="Ayaka | Portfolio">
-  <meta property="og:description" content="ハムスターと水色の道を歩いて巡る、Ayakaの制作作品とプロフィール。">
+  <meta property="og:title" content="ayarion.exe | Portfolio">
+  <meta property="og:description" content="ウィンドウをスクロールしてめぐる、ayarionのポートフォリオ。">
   <meta property="og:url" content="https://tsukuriba.org/">
   <meta property="og:image" content="https://tsukuriba.org/assets/og-town.png">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="水色の道、家、ハムスターのいるAyakaの街">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Ayaka | Portfolio">
-  <meta name="twitter:description" content="ハムスターと水色の道を歩いて巡る、Ayakaの制作作品とプロフィール。">
+  <meta name="twitter:title" content="ayarion.exe | Portfolio">
+  <meta name="twitter:description" content="ウィンドウをスクロールしてめぐる、ayarionのポートフォリオ。">
   <meta name="twitter:image" content="https://tsukuriba.org/assets/og-town.png">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" sizes="180x180">
-  <link rel="stylesheet" href="style.css?v=20260911-goal">
-  <script defer src="script.js?v=20260911-goal"></script>
-  <script defer src="vendor/three.bundle.js"></script>
-  <script defer src="assets/portfolio-type.js?v=20260911-goal"></script>
-  <script defer src="world.js?v=20260912-detail"></script>
+  <link rel="stylesheet" href="style.css?v=20260921-os">
+  <script defer src="script.js?v=20260921-os"></script>
 </head>
-<body class="is-intro">
-  <a class="skip-link" href="#menu">メニューから作品を見る</a>
-  <header class="masthead">
-    <button class="menu-toggle" id="menu-toggle" aria-label="メニューを開く" aria-expanded="false" aria-controls="menu"><span></span><span></span><span></span></button>
+<body>
+  <a class="skip-link" href="#about">メインコンテンツへ移動</a>
+  <header class="topbar">
+    <a class="brand" href="#top" aria-label="ayarionのポートフォリオ先頭へ">ayarion<span>.exe</span></a>
+    <button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="quick-menu" aria-label="メニューを開く"><i></i><i></i><i></i></button>
   </header>
-  <main id="journey">
-    <section class="world" id="world" aria-label="水色の一本道に沿って4つの家を巡る街">
-      <canvas id="town" tabindex="0" aria-describedby="walk-instructions" aria-label="ハムスターの街。行きたい場所をタップまたはクリックすると歩きます。縦スクロールでも進めます。"></canvas>
-      <div id="destination-marker" aria-hidden="true" hidden></div>
-      <div class="approach-prompt" id="approach-prompt" aria-hidden="true" inert>
-        <button id="enter-house"><span id="enter-label">家に入る</span><span aria-hidden="true">↗</span></button>
-        <small>クリック / Enter / スペース</small>
-      </div>
-      <p id="world-error" class="world-error" role="status" hidden></p>
-    </section>
-    <div class="journey-space" aria-hidden="true"></div>
-  </main>
-  <aside class="walk-controls" aria-label="街の操作">
-    <div class="journey-progress"><span id="current-stop">道のはじまり</span><span id="progress-text">0%</span><div class="progress-track" aria-hidden="true"><span id="progress-fill"></span></div></div>
-    <p class="walk-instructions" id="walk-instructions">行きたい場所をタップ。<small>縦スクロールでも歩けます</small></p>
+  <aside class="quick-menu" id="quick-menu" aria-label="セクションメニュー" hidden>
+    <div class="quick-menu__bar"><strong>ayarion.exe</strong><button id="menu-close" type="button" aria-label="メニューを閉じる">×</button></div>
+    <nav>
+      <a href="#about">01　自己紹介</a><a href="#projects">02　個人制作作品</a><a href="#team">03　チーム制作作品</a><a href="#skills">04　スキル / お問い合わせ</a>
+    </nav>
   </aside>
-  <dialog class="town-nav" id="menu" aria-labelledby="menu-title"><div class="menu-heading"><h2 id="menu-title">Portfolio</h2><button id="close-menu" class="close" aria-label="メニューを閉じる">×</button></div><nav aria-label="ポートフォリオの各ページを直接開く">
-    <button data-house="about"><span>01</span> 自己紹介</button>
-    <button data-house="projects"><span>02</span> 個人制作作品</button>
-    <button data-house="team"><span>03</span> チーム制作作品</button>
-    <button data-house="contact"><span>04</span> スキル / お問い合わせ</button>
-  </nav><div class="menu-extras"><button class="reset" id="reset">↺ はじめに戻る</button><button id="view-stamps">スタンプカード</button><button id="reset-stamps">スタンプをリセット</button><button id="help" class="help" aria-label="操作方法を開く">?</button></div></dialog>
-  <div class="intro-layer" id="intro" role="button" tabindex="0" aria-disabled="true" aria-label="ハムスターの回し車。4秒後、クリックまたはEnterで街へ進む">
-    <div id="wheel-slot" class="wheel-slot"></div>
-    <div class="intro-meter"><div id="intro-progress" role="progressbar" aria-label="オープニング" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span></span></div><p id="intro-status" role="status">街を準備しています</p></div>
-  </div>
-  <button id="sound-toggle" class="sound-toggle" aria-pressed="false" aria-label="足音と息づかいの音をオンにする">音をオン</button>
-  <div class="wheel-host" id="wheel-host" aria-hidden="true"><canvas id="wheel" aria-label="紙の回し車を走るハムスター"></canvas></div>
-  <div class="whiteout" id="whiteout" aria-hidden="true"></div>
-  <dialog id="panel" aria-labelledby="panel-title"><div class="panel-top"><span id="panel-kicker" class="eyebrow"></span><button class="close" id="close-panel" aria-label="閉じて家の前に戻る">×</button></div><div id="panel-body"></div></dialog>
-  <dialog id="outbound" aria-labelledby="outbound-title"><p class="eyebrow">ON MY WAY</p><h2 id="outbound-title">作品を開いています</h2><div id="outbound-wheel-slot"></div><p id="outbound-status" role="status">ハムスターも一緒に、次のページへ。</p></dialog>
-  <dialog id="goal" aria-labelledby="goal-title"><div class="panel-top"><span class="eyebrow">A LITTLE WALK</span><button id="close-goal" class="close" aria-label="閉じてゴールに留まる">×</button></div><button id="skip-goal" class="back">演出をスキップ</button><h2 id="goal-title">Thank you for walking</h2><div class="goal-result"><p id="goal-message"></p><div id="stamp-card"></div><div id="goal-links" class="panel-links"></div></div></dialog>
+  <main id="top">
+    <section class="desktop-hero reveal is-visible" aria-labelledby="hero-title">
+      <div class="hero-copy"><p class="eyebrow">WELCOME_TO_MY_DESKTOP</p><h1 id="hero-title">ayarion<span>.exe</span></h1><p class="hero-lead">ウィンドウを開いて、つくったものを見ていく。</p><p class="scroll-note"><span class="scroll-arrow" aria-hidden="true">↓</span> スクロールするとウィンドウが現れます</p></div>
+      <div class="hero-window os-window" aria-hidden="true"><div class="window-bar window-bar--orange"><span>My Desktop</span><b>−</b><b>□</b><b>×</b></div><div class="hero-icons"><span>📁<small>works</small></span><span>✦<small>ideas</small></span><span>◈<small>about</small></span></div></div>
+    </section>
+    <div class="desktop-grid">
+      <section class="os-window profile-window reveal" id="about" aria-labelledby="about-title">
+        <div class="window-bar window-bar--orange"><span id="about-title">自己紹介</span><b>−</b><b>□</b><button class="window-close" type="button" aria-label="自己紹介ウィンドウを閉じる">×</button></div>
+        <div class="window-body profile-body"><div class="avatar-placeholder" aria-hidden="true">a.</div><div><p class="window-kicker">PROFILE.TXT</p><h2>こんにちは、<strong>ayarion</strong>です。</h2><p>つくることを通して、見た人の毎日が少し楽しくなるような作品を目指しています。</p><div class="link-row"><a class="pill" href="https://github.com/ayarion" target="_blank" rel="noreferrer">GitHub ↗</a><a class="pill" href="https://x.com/lavien_kan" target="_blank" rel="noreferrer">X ↗</a></div></div></div>
+      </section>
+      <section class="work-section" id="projects" aria-labelledby="projects-title"><div class="section-heading reveal"><p class="eyebrow">FOLDER_02</p><h2 id="projects-title">個人制作作品</h2><span class="section-count">3 WINDOWS</span></div><div class="project-stack" id="personal-projects"></div></section>
+      <section class="os-window team-window reveal" id="team" aria-labelledby="team-title"><div class="window-bar window-bar--pink"><span id="team-title">チーム制作作品</span><b>−</b><b>□</b><button class="window-close" type="button" aria-label="チーム制作作品ウィンドウを閉じる">×</button></div><div class="window-body team-body" id="team-project"></div></section>
+      <section class="os-window skills-window reveal" id="skills" aria-labelledby="skills-title"><div class="window-bar window-bar--yellow"><span id="skills-title">スキル / お問い合わせ</span><b>−</b><b>□</b><button class="window-close" type="button" aria-label="スキルとお問い合わせウィンドウを閉じる">×</button></div><div class="window-body skills-body"><div><p class="window-kicker">SKILLS.SYS</p><h2>使えるスキル</h2><div class="skill-list" id="skill-list"></div></div><div class="contact-card"><span class="contact-icon" aria-hidden="true">✉</span><div><p class="window-kicker">CONTACT.EXE</p><h3>お問い合わせ</h3><p>メールアドレスは準備中です。</p><button class="pill" type="button" disabled>準備中</button></div></div></div></section>
+    </div>
+    <footer class="desktop-footer"><span>© 2026 ayarion</span><span>END_OF_PORTFOLIO</span></footer>
+  </main>
   <p class="sr-only" id="announcement" aria-live="polite"></p>
-  <noscript><p class="noscript">街を歩くにはJavaScriptを有効にしてください。<a href="https://github.com/ayarion">GitHub</a> / <a href="https://tsukuriba.org/togame/">togame</a> / <a href="https://tsukuriba.org/OjiMate/">OjiMate</a> / <a href="https://tsukuriba.org/kinto-log/">Kinto-Log</a> / <a href="https://tsukuriba.org/mersampo/">mersampo</a></p></noscript>
+  <noscript><p class="noscript">JavaScriptを有効にすると、ウィンドウのアニメーションと作品一覧を表示できます。</p></noscript>
 </body>
 </html>
 
