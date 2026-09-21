@@ -12,6 +12,19 @@ main{width:min(1120px,calc(100% - 32px));margin:auto;padding:112px 0 60px}.deskt
 .desktop-footer{display:flex;justify-content:space-between;gap:20px;padding:80px 8px 20px;color:#fff;font:400 14px var(--mono);letter-spacing:.05em}.reveal{opacity:0;transform:translateY(28px) scale(.97);transition:opacity 240ms var(--ease-out),transform 240ms var(--ease-out)}.reveal.is-visible{opacity:1;transform:none}.desktop-hero.reveal{transform:none}.desktop-hero.is-visible .hero-window{animation:window-pop 240ms var(--ease-out) both}.desktop-hero.is-visible .hero-copy{animation:copy-in 240ms var(--ease-out) both}.os-window.is-minimized .window-body{display:none}.os-window.is-minimized .window-bar{border-bottom:0}@keyframes window-pop{from{opacity:0;transform:translateY(24px) rotate(6deg) scale(.96)}to{opacity:1;transform:translateY(0) rotate(4deg) scale(1)}}@keyframes copy-in{from{opacity:0;transform:translateX(-18px)}to{opacity:1;transform:none}}@keyframes bob{50%{transform:translateY(4px)}}
 @media(max-width:720px){body{font-size:17px}.topbar{padding:17px 16px}main{width:min(100% - 22px,560px);padding-top:90px}.desktop-hero{min-height:620px;display:flex;flex-direction:column;justify-content:center;gap:34px;padding:30px 7px}.hero-copy{width:100%}.hero-copy h1{font-size:clamp(53px,17vw,90px)}.hero-lead{font-size:18px}.scroll-note{margin-top:28px;font-size:14px}.hero-window{width:92%;align-self:center;transform:rotate(3deg)}.hero-icons{min-height:150px;padding:25px 15px}.profile-window,.team-window,.skills-window{width:100%}.profile-body{grid-template-columns:82px 1fr;gap:18px;padding:22px 18px}.avatar-placeholder{font-size:38px;border-width:2px}.profile-body h2,.skills-body h2{font-size:23px}.profile-body p:not(.window-kicker){font-size:16px;line-height:1.8}.link-row{margin-top:14px}.pill{font-size:14px;min-height:41px;padding:7px 10px}.window-body{padding:22px 18px}.section-heading{margin-left:0}.section-heading h2{font-size:34px}.section-count{font-size:13px}.project-stack{grid-template-columns:1fr;padding:0 4px;gap:34px}.project-stack .mini-window:nth-child(2),.project-stack .mini-window:nth-child(3){margin-top:0}.mini-body{grid-template-columns:120px 1fr;gap:18px;padding:19px 15px}.project-copy h3{font-size:28px}.project-copy p:not(.window-kicker){font-size:16px;line-height:1.8}.team-project-grid{grid-template-columns:1fr;padding:15px;gap:18px}.team-note{padding:14px}.team-note small{font-size:14px}.skills-body{grid-template-columns:1fr;gap:22px}.contact-card{padding:17px}.contact-card p:not(.window-kicker){font-size:16px}.desktop-footer{padding-top:65px;font-size:12px}.quick-menu{top:72px;right:11px}}
 @media(max-width:390px){.window-bar{min-height:46px;padding-left:12px}.window-bar b,.window-close{width:24px;height:24px;font-size:14px;border-width:2px}.mini-body{grid-template-columns:100px 1fr;gap:13px;padding:15px 11px}.project-copy h3{font-size:24px}.project-copy p:not(.window-kicker){font-size:15px}.project-image{border-width:2px}.section-heading h2{font-size:30px}}
+
+/* デスクトップのアイコンとラベルは、遠目でも内容が分かる大きさにする */
+.desktop-hero{grid-template-columns:1fr minmax(360px,520px)}
+.hero-window .window-bar{min-height:58px;font-size:22px}
+.hero-icons{gap:24px;min-height:250px;padding:48px 30px;font-size:58px}
+.hero-icons span{gap:8px}
+.hero-icons small{font-size:16px;line-height:1.35}
+@media(max-width:720px){
+  .desktop-hero{grid-template-columns:1fr}
+  .hero-window .window-bar{min-height:52px;font-size:19px}
+  .hero-icons{min-height:190px;padding:34px 20px;font-size:46px;gap:16px}
+  .hero-icons small{font-size:14px}
+}
 @media(hover:hover) and (pointer:fine){.pill:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 #2b3944}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;scroll-behavior:auto!important}.reveal,.mini-window{opacity:0;transform:none;transition:opacity 180ms ease!important}.reveal.is-visible,.mini-window.is-visible{opacity:1;transform:none}}
 
