@@ -9,7 +9,7 @@ window.PORTFOLIO = {
   email: 'ayarionpc@gmail.com',
   skills: ['HTML', 'CSS', 'JavaScript', 'Python', 'C'],
   projects: [
-    { id: 'togame', title: 'togame', url: 'https://apps.apple.com/jp/app/sns%E3%82%92%E3%82%AD%E3%83%A3%E3%83%A9%E3%81%8C%E3%83%88%E3%82%AC%E3%83%A1%E3%82%8B/id6811971132', action: 'download', artwork: 'assets/artwork/togame.png', alt: 'togameの青・黄・紫・ピンクのキャラクターとロゴ', width: 1536, height: 1024 },
+    { id: 'togame', title: 'togame', url: 'https://apps.apple.com/jp/app/sns%E3%82%92%E3%82%AD%E3%83%A3%E3%83%A9%E3%81%8C%E3%83%88%E3%82%AC%E3%83%A1%E3%82%8B/id6811971132', action: 'download', artwork: 'assets/artwork/togame-repaired.png', alt: 'togameの青・黄・紫・ピンクのキャラクターとロゴ', width: 1536, height: 1024 },
     { id: 'ojimate', title: 'OjiMate', url: 'https://tsukuriba.org/OjiMate/', artwork: 'assets/artwork/ojimate.png', alt: 'OjiMateのおじさんと猫、ベンチ', width: 1536, height: 1024 },
     { id: 'kinto-log', title: 'Kinto-Log', url: 'https://tsukuriba.org/kinto-log/', artwork: 'assets/screenshots/kinto-log-01.jpg', alt: 'Kinto-Logのトレーニング記録画面', shape: 'arch', width: 908, height: 1614 }
   ],
@@ -138,7 +138,8 @@ window.PORTFOLIO = {
     // Only font readiness is awaited; offscreen lazy images never delay entry.
     const minimumMs = 1500;
     const readinessLimitMs = 2600;
-    const exitMs = 900; // Keep in sync with .opening-curtain's transition duration.
+    // Single duration token shared with the fabric animation; no timeout/CSS drift.
+    const exitMs = parseFloat(getComputedStyle(opening).getPropertyValue('--curtain-duration')) || 1200;
     let leaving = false;
     let removed = false;
     let fontsReady = false;
@@ -173,6 +174,7 @@ window.PORTFOLIO = {
       if (leaving) return;
       leaving = true;
       cancelAnimationFrame(frame);
+      root.setAttribute('data-opening', 'active');
       opening.classList.add('is-leaving');
       exitTimer = setTimeout(removeOpening, motionPreference.matches ? 150 : exitMs);
     }

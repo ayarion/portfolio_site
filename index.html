@@ -62,12 +62,15 @@
       introWatchFrame = requestAnimationFrame(watchIntroPaint);
     }
   </script>
-  <link rel="stylesheet" href="style.css?v=20260922-mobile">
-  <script defer src="script.js?v=20260922-mobile"></script>
+  <link rel="stylesheet" href="style.css?v=20260922-drapes">
+  <script defer src="script.js?v=20260922-drapes"></script>
 </head>
 <body>
   <div class="opening" id="opening" aria-hidden="true">
-    <div class="opening-curtain" aria-hidden="true"></div>
+    <div class="opening-drapes" aria-hidden="true">
+      <div class="opening-curtain opening-curtain--left"><div class="opening-cloth"><span class="opening-folds"></span></div></div>
+      <div class="opening-curtain opening-curtain--right"><div class="opening-cloth"><span class="opening-folds"></span></div></div>
+    </div>
     <div class="opening-center" aria-hidden="true">
       <div class="opening-seal">
         <div class="opening-aura"></div>
