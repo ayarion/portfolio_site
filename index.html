@@ -3,56 +3,85 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#69aeb2">
-  <meta name="description" content="ayarionのポートフォリオ。OS風のウィンドウをスクロールして、自己紹介、個人制作、チーム制作、スキルをめぐります。">
-  <title>ayarion.exe | Portfolio</title>
+  <meta name="theme-color" content="#f3ecdf">
+  <meta name="description" content="ayarionのポートフォリオ。自己紹介、個人制作作品、チーム制作作品、スキルを紹介します。">
+  <title>ayarion | Portfolio</title>
   <link rel="canonical" href="https://tsukuriba.org/">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="ja_JP">
-  <meta property="og:title" content="ayarion.exe | Portfolio">
-  <meta property="og:description" content="ウィンドウをスクロールしてめぐる、ayarionのポートフォリオ。">
+  <meta property="og:title" content="ayarion | Portfolio">
+  <meta property="og:description" content="つくることを、楽しむ。ayarionのポートフォリオ。">
   <meta property="og:url" content="https://tsukuriba.org/">
   <meta property="og:image" content="https://tsukuriba.org/assets/og-town.png">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="ayarion.exe | Portfolio">
-  <meta name="twitter:description" content="ウィンドウをスクロールしてめぐる、ayarionのポートフォリオ。">
+  <meta name="twitter:title" content="ayarion | Portfolio">
+  <meta name="twitter:description" content="つくることを、楽しむ。ayarionのポートフォリオ。">
   <meta name="twitter:image" content="https://tsukuriba.org/assets/og-town.png">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" sizes="180x180">
-  <link rel="stylesheet" href="style.css?v=20260921-retro">
-  <script defer src="script.js?v=20260921-retro"></script>
+  <link rel="stylesheet" href="style.css?v=20260922-editorial">
+  <script defer src="script.js?v=20260922-editorial"></script>
 </head>
 <body>
   <a class="skip-link" href="#about">メインコンテンツへ移動</a>
-  <header class="topbar">
-    <a class="brand" href="#top" aria-label="ayarionのポートフォリオ先頭へ">ayarion<span>.exe</span></a>
-    <button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="quick-menu" aria-label="メニューを開く"><i></i><i></i><i></i></button>
-  </header>
-  <aside class="quick-menu" id="quick-menu" aria-label="セクションメニュー" hidden>
-    <div class="quick-menu__bar"><strong>ayarion.exe</strong><button id="menu-close" type="button" aria-label="メニューを閉じる">×</button></div>
-    <nav>
-      <a href="#about">01　自己紹介</a><a href="#projects">02　個人制作作品</a><a href="#team">03　チーム制作作品</a><a href="#skills">04　SKILLS / CONTACT</a>
+  <header class="site-header">
+    <a class="wordmark" href="#top" aria-label="ayarionのポートフォリオ先頭へ">ayarion</a>
+    <nav class="site-nav" aria-label="セクションメニュー">
+      <a class="nav-link" href="#about">ABOUT</a>
+      <a class="nav-link" href="#projects">WORKS</a>
+      <a class="nav-link" href="#skills">SKILLS</a>
+      <a class="nav-link" href="#contact">CONTACT</a>
     </nav>
-  </aside>
+  </header>
   <main id="top">
-    <section class="desktop-hero reveal is-visible" aria-labelledby="hero-title">
-      <div class="hero-copy"><p class="eyebrow">WELCOME_TO_MY_DESKTOP</p><h1 id="hero-title">ayarion<span>.exe</span></h1><p class="hero-lead">ウィンドウを開いて、つくったものを見ていく。</p></div>
-      <div class="hero-window os-window" aria-hidden="true"><div class="window-bar window-bar--orange"><span>My Desktop</span><b>−</b><b>□</b><b>×</b></div><div class="hero-icons"><span>📁<small>works</small></span><span>✦<small>ideas</small></span><span>◈<small>about</small></span></div></div>
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="sunburst sunburst--hero" aria-hidden="true"></div>
+      <div class="sunburst sunburst--blue" aria-hidden="true"></div>
+      <p class="hero-note" aria-hidden="true">日常に、<br>小さなたのしさを。</p>
+      <div class="hero-type">
+        <p class="hero-kicker">PORTFOLIO</p>
+        <div class="hero-frame"><h1 id="hero-title">ayarion</h1><span class="spark spark--hero" aria-hidden="true"></span></div>
+        <p class="hero-tagline">つくることを、楽しむ。</p>
+      </div>
     </section>
-    <div class="desktop-grid">
-      <section class="os-window profile-window reveal" id="about" aria-labelledby="about-title">
-        <div class="window-bar window-bar--orange"><span id="about-title">自己紹介</span><b>−</b><b>□</b><button class="window-close" type="button" aria-label="自己紹介ウィンドウを閉じる">×</button></div>
-        <div class="window-body profile-body"><div class="avatar-placeholder" aria-hidden="true">a.</div><div><p class="window-kicker">PROFILE.TXT</p><h2>こんにちは、<strong>ayarion</strong>です。</h2><p>つくることを通して、見た人の毎日が少し楽しくなるような作品を目指しています。</p><div class="link-row"><a class="pill" href="https://github.com/ayarion" target="_blank" rel="noreferrer">GitHub ↗</a><a class="pill" href="https://x.com/lavien_kan" target="_blank" rel="noreferrer">X ↗</a></div></div></div>
+    <div class="page-content">
+      <section class="about section-reveal" id="about" aria-labelledby="about-title">
+        <h2 id="about-title">自己紹介</h2>
+        <div class="about-copy">
+          <p class="profile-name">ayarion</p>
+          <p>見た人の毎日が少し楽しくなるような<br class="desktop-break">作品を目指しています。</p>
+          <div class="social-links">
+            <a class="text-link pressable" href="https://github.com/ayarion" target="_blank" rel="noopener noreferrer"><span>GitHub</span><span class="link-arrow" aria-hidden="true">↗</span><span class="sr-only">（新しいタブで開く）</span></a>
+            <a class="text-link pressable" href="https://x.com/lavien_kan" target="_blank" rel="noopener noreferrer"><span>X</span><span class="link-arrow" aria-hidden="true">↗</span><span class="sr-only">（新しいタブで開く）</span></a>
+          </div>
+        </div>
+        <span class="orbit" aria-hidden="true"><span class="spark"></span></span>
       </section>
-      <section class="work-section" id="projects" aria-labelledby="projects-title"><div class="section-heading reveal"><p class="eyebrow">FOLDER_02</p><h2 id="projects-title">個人制作作品</h2><span class="section-count">3 WINDOWS</span></div><div class="project-stack" id="personal-projects"></div></section>
-      <section class="os-window team-window reveal" id="team" aria-labelledby="team-title"><div class="window-bar window-bar--pink"><span id="team-title">チーム制作作品</span><b>−</b><b>□</b><button class="window-close" type="button" aria-label="チーム制作作品ウィンドウを閉じる">×</button></div><div class="window-body team-body" id="team-project"></div></section>
-      <section class="os-window skills-window reveal" id="skills" aria-labelledby="skills-title"><div class="window-bar window-bar--yellow"><span id="skills-title">SKILLS / CONTACT</span><b>−</b><b>□</b><button class="window-close" type="button" aria-label="スキルとコンタクトのウィンドウを閉じる">×</button></div><div class="window-body skills-body"><div><p class="window-kicker">SKILLS.SYS</p><h2>SKILLS</h2><div class="skill-list" id="skill-list"></div></div><div class="contact-card"><span class="contact-icon" aria-hidden="true">✉</span><div><p class="window-kicker">CONTACT.EXE</p><h3>CONTACT</h3><p>メールアドレスは準備中です。</p><button class="pill" type="button" disabled>準備中</button></div></div></div></section>
+      <section class="works" id="projects" aria-labelledby="projects-title">
+        <div class="section-heading section-reveal"><h2 id="projects-title">個人制作作品</h2><span class="heading-rule" aria-hidden="true"></span><span class="section-caption" aria-hidden="true">PERSONAL WORK</span></div>
+        <div class="project-list" id="personal-projects"></div>
+      </section>
+      <section class="team" id="team" aria-labelledby="team-title">
+        <div class="section-heading section-reveal"><h2 id="team-title">チーム制作作品</h2><span class="heading-rule" aria-hidden="true"></span><span class="section-caption" aria-hidden="true">TEAM WORK</span></div>
+        <div class="project-list" id="team-projects"></div>
+      </section>
+      <div class="footer-content section-reveal">
+        <section id="skills" aria-labelledby="skills-title"><h2 id="skills-title">SKILLS</h2><ul class="skill-list" id="skill-list"></ul></section>
+        <span class="footer-divider" aria-hidden="true"><span class="spark"></span></span>
+        <section id="contact" aria-labelledby="contact-title">
+          <h2 id="contact-title">CONTACT</h2>
+          <p id="contact-status">メールアドレスは準備中です。</p>
+          <div class="social-links">
+            <a class="text-link pressable" href="https://github.com/ayarion" target="_blank" rel="noopener noreferrer"><span>GitHub</span><span class="link-arrow" aria-hidden="true">↗</span><span class="sr-only">（新しいタブで開く）</span></a>
+            <a class="text-link pressable" href="https://x.com/lavien_kan" target="_blank" rel="noopener noreferrer"><span>X</span><span class="link-arrow" aria-hidden="true">↗</span><span class="sr-only">（新しいタブで開く）</span></a>
+          </div>
+        </section>
+      </div>
+      <footer class="site-footer"><span>© ayarion</span><div class="sunburst sunburst--footer" aria-hidden="true"></div></footer>
     </div>
-    <footer class="desktop-footer"><span>© 2026 ayarion</span><span>END_OF_PORTFOLIO</span></footer>
   </main>
-  <p class="sr-only" id="announcement" aria-live="polite"></p>
-  <noscript><p class="noscript">JavaScriptを有効にすると、ウィンドウのアニメーションと作品一覧を表示できます。</p></noscript>
+  <noscript><div class="noscript"><p>作品リンク</p><a href="https://apps.apple.com/jp/app/id6811971132">togame — App Store</a><a href="https://tsukuriba.org/OjiMate/">OjiMate</a><a href="https://tsukuriba.org/kinto-log/">Kinto-Log</a><a href="https://tsukuriba.org/mersampo/">mersampo</a></div></noscript>
 </body>
 </html>
 

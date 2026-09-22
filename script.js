@@ -1,44 +1,122 @@
-/* 編集しやすい内容はすべてここにまとめています。作品説明と画像は後から差し替え可能です。 */
-window.PORTFOLIO={
-  name:'ayarion',
-  github:'https://github.com/ayarion',
-  x:'https://x.com/lavien_kan',
-  email:'',
-  skills:['HTML','CSS','JavaScript','Python','C'],
-  projects:[
-    {id:'togame',title:'togame',url:'',description:'作品の説明を準備中です。',screenshots:[{src:'assets/screenshots/togame-01.png',alt:'togameの画面'}]},
-    {id:'ojimate',title:'OjiMate',url:'https://tsukuriba.org/OjiMate/',description:'作品の説明を準備中です。',screenshots:[{src:'assets/screenshots/ojimate-01.png',alt:'OjiMateの画面'}]},
-    {id:'kinto-log',title:'Kinto-Log',url:'https://tsukuriba.org/kinto-log/',description:'作品の説明を準備中です。',screenshots:[{src:'assets/screenshots/kinto-log-01.jpg',alt:'Kinto-Logの画面'}]}
+/* 差し替え用データ。作品は名前・画像・URLのみで表示し、説明文は表示しません。
+ * artwork: 透過切り抜き画像。Kinto-Logのみ元の画面をCSSでアーチ状に見せます。
+ * action: 'download' はtogameだけ。URLは指定されたApp Storeのページです。
+ * email: 決まり次第入力するとCONTACTにメールリンクを表示します。
+ */
+window.PORTFOLIO = {
+  name: 'ayarion',
+  github: 'https://github.com/ayarion',
+  x: 'https://x.com/lavien_kan',
+  email: '',
+  skills: ['HTML', 'CSS', 'JavaScript', 'Python', 'C'],
+  projects: [
+    { id: 'togame', title: 'togame', url: 'https://apps.apple.com/jp/app/sns%E3%82%92%E3%82%AD%E3%83%A3%E3%83%A9%E3%81%8C%E3%83%88%E3%82%AC%E3%83%A1%E3%82%8B/id6811971132', action: 'download', artwork: 'assets/artwork/togame.png', alt: 'togameの青・黄・紫・ピンクのキャラクターとロゴ', width: 1536, height: 1024 },
+    { id: 'ojimate', title: 'OjiMate', url: 'https://tsukuriba.org/OjiMate/', artwork: 'assets/artwork/ojimate.png', alt: 'OjiMateのおじさんと猫、ベンチ', width: 1536, height: 1024 },
+    { id: 'kinto-log', title: 'Kinto-Log', url: 'https://tsukuriba.org/kinto-log/', artwork: 'assets/screenshots/kinto-log-01.jpg', alt: 'Kinto-Logのトレーニング記録画面', shape: 'arch', width: 908, height: 1614 }
   ],
-  teamProjects:[
-    {id:'mersampo',title:'mersampo',url:'https://tsukuriba.org/mersampo/',description:'作品の説明を準備中です。',screenshots:[{src:'assets/screenshots/mersampo-01.png',alt:'mersampoの画面'},{src:'assets/screenshots/mersampo-03.png',alt:'mersampoの商品画面'}]}
+  teamProjects: [
+    { id: 'mersampo', title: 'mersampo', url: 'https://tsukuriba.org/mersampo/', artwork: 'assets/artwork/mersampo.png', alt: 'mersampoのお店、人々、街路樹が並ぶ街並み', width: 1536, height: 1024 }
   ]
 };
 
-(()=>{'use strict';
-  const data=window.PORTFOLIO,$=s=>document.querySelector(s),escapeHTML=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const safeURL=value=>{if(!value)return '';try{const u=new URL(value,location.href);return /^https?:$/.test(u.protocol)?u.href:''}catch{return ''}};
-  const projectImage=project=>project.screenshots?.[0]?.src?'<img loading="lazy" src="'+escapeHTML(project.screenshots[0].src)+'" alt="'+escapeHTML(project.screenshots[0].alt||project.title)+'">':'<div class="image-placeholder" aria-label="画像準備中">IMAGE<br>準備中</div>';
-  const projectWindow=(project,index,kind)=>{
-    const url=safeURL(project.url),blank=!url;
-    return '<article class="mini-window reveal" style="--delay:'+index*60+'ms"><div class="window-bar window-bar--'+(kind==='team'?'pink':'blue')+'"><span>'+escapeHTML(project.title)+'.app</span><b>−</b><b>□</b><b>×</b></div><div class="mini-body"><div class="project-image">'+projectImage(project)+'</div><div class="project-copy"><p class="window-kicker">'+(kind==='team'?'TEAM_PROJECT':'PERSONAL_PROJECT')+'</p><h3>'+escapeHTML(project.title)+'</h3><p>'+escapeHTML(project.description)+'</p>'+(blank?'<button class="pill is-disabled" type="button" disabled>リンク準備中</button>':'<a class="pill pill--primary" href="'+escapeHTML(url)+'" target="_blank" rel="noreferrer">作品を開く ↗</a>')+'</div></div></article>';
+(() => {
+  'use strict';
+  const data = window.PORTFOLIO;
+  const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+  const safeURL = value => {
+    if (typeof value !== 'string' || !value.trim()) return '';
+    try {
+      const url = new URL(value, location.href);
+      return /^https?:$/.test(url.protocol) ? url.href : '';
+    } catch (error) {
+      console.error('作品リンクのURLを確認してください。', error);
+      return '';
+    }
   };
-  $('#personal-projects').innerHTML=data.projects.map((p,i)=>projectWindow(p,i,'personal')).join('');
-  $('#team-project').innerHTML=data.teamProjects.map((p,i)=>'<div class="team-project-grid">'+projectWindow(p,i,'team')+'</div>').join('');
-  $('#skill-list').innerHTML=data.skills.map((skill,i)=>'<span class="skill-chip skill-chip--'+(i%4)+'">'+escapeHTML(skill)+'</span>').join('');
+  const downloadIcon = '<svg class="download-icon" viewBox="0 0 32 34" fill="currentColor" aria-hidden="true"><path d="M13 1a2 2 0 0 0-2 2v11H6a2 2 0 0 0-1.5 3.3l10 11a2 2 0 0 0 3 0l10-11A2 2 0 0 0 26 14h-5V3a2 2 0 0 0-2-2zM3 30a2 2 0 0 0-2 2v1h30v-1a2 2 0 0 0-2-2z"/></svg>';
 
-  const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('is-visible');observer.unobserve(entry.target)}}),{threshold:.16,rootMargin:'0px 0px -8% 0px'});
-  document.querySelectorAll('.reveal:not(.is-visible)').forEach(el=>observer.observe(el));
-  const menu=$('#quick-menu'),toggle=$('#menu-toggle');
-  function closeMenu(){menu.hidden=true;toggle.setAttribute('aria-expanded','false');toggle.setAttribute('aria-label','メニューを開く')}
-  toggle.addEventListener('click',()=>{const open=menu.hidden;menu.hidden=!open;toggle.setAttribute('aria-expanded',String(open));toggle.setAttribute('aria-label',open?'メニューを閉じる':'メニューを開く');if(open)menu.querySelector('a')?.focus()});
-  $('#menu-close').addEventListener('click',closeMenu);
-  menu.querySelectorAll('a').forEach(a=>a.addEventListener('click',closeMenu));
-  document.addEventListener('click',e=>{if(!menu.hidden&&!menu.contains(e.target)&&!toggle.contains(e.target))closeMenu()});
-  document.querySelectorAll('.window-close').forEach(button=>button.addEventListener('click',()=>{const windowEl=button.closest('.os-window');windowEl.classList.toggle('is-minimized');button.setAttribute('aria-label',windowEl.classList.contains('is-minimized')?'ウィンドウを戻す':'ウィンドウを最小化')}));
-  const navLinks=[...menu.querySelectorAll('a')],sections=navLinks.map(a=>document.querySelector(a.getAttribute('href'))).filter(Boolean);
-  const sectionObserver=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){navLinks.forEach(a=>a.removeAttribute('aria-current'));menu.querySelector('a[href="#'+entry.target.id+'"]')?.setAttribute('aria-current','page')}}),{rootMargin:'-35% 0px -55% 0px'});
-  sections.forEach(section=>sectionObserver.observe(section));
-  window.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenu()});
+  function projectMarkup(project, index, team = false) {
+    const url = safeURL(project.url);
+    const reverse = team || index % 2 === 1;
+    const action = project.action === 'download'
+      ? downloadIcon + '<span class="download-label">GET THE APP</span><span class="download-store">App Store</span>'
+      : '<span>作品を見る</span><span class="link-arrow" aria-hidden="true">↗</span>';
+    const label = project.action === 'download' ? project.title + 'をApp Storeでダウンロード（新しいタブで開く）' : project.title + 'の作品ページ（新しいタブで開く）';
+    return '<article class="project project--' + escapeHTML(project.id) + (reverse ? ' project--reverse' : '') + ' section-reveal" aria-labelledby="title-' + escapeHTML(project.id) + '">' +
+      '<figure class="project-visual' + (project.shape === 'arch' ? ' project-visual--arch' : '') + '"><img src="' + escapeHTML(project.artwork) + '" alt="' + escapeHTML(project.alt) + '" width="' + project.width + '" height="' + project.height + '" loading="lazy" decoding="async"></figure>' +
+      '<div class="project-copy"><h3 id="title-' + escapeHTML(project.id) + '">' + escapeHTML(project.title) + '</h3>' +
+      (url ? '<a class="pressable ' + (project.action === 'download' ? 'download-link' : 'project-link') + '" href="' + escapeHTML(url) + '" target="_blank" rel="noopener noreferrer" aria-label="' + escapeHTML(label) + '">' + action + '</a>' : '') + '</div></article>';
+  }
+
+  document.querySelector('#personal-projects').innerHTML = data.projects.map((project, index) => projectMarkup(project, index)).join('');
+  document.querySelector('#team-projects').innerHTML = data.teamProjects.map((project, index) => projectMarkup(project, index, true)).join('');
+  document.querySelector('#skill-list').innerHTML = data.skills.map(skill => '<li>' + escapeHTML(skill) + '</li>').join('');
+  if (data.email) {
+    const contact = document.querySelector('#contact-status');
+    const link = document.createElement('a');
+    link.className = 'text-link pressable';
+    link.href = 'mailto:' + data.email;
+    link.textContent = data.email;
+    contact.replaceChildren(link);
+  }
+
+  // 初期表示領域は隠さず、これから見える項目だけ一度フェードイン。
+  // JSやIntersectionObserverが利用できない場合にも本文は見えます。
+  if ('IntersectionObserver' in window) {
+    const revealObserver = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.removeAttribute('data-pending');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: .08, rootMargin: '0px 0px -24px 0px' });
+    document.querySelectorAll('.section-reveal').forEach(element => {
+      if (element.getBoundingClientRect().top >= innerHeight - 24) {
+        element.setAttribute('data-animate', '');
+        element.setAttribute('data-pending', '');
+        revealObserver.observe(element);
+      }
+    });
+    document.addEventListener('focusin', event => event.target.closest('.section-reveal')?.removeAttribute('data-pending'));
+  }
+
+  // Pointer Eventsに統一。リンクはpreventDefaultせず即座に開くため、
+  // 修飾キー・キーボード操作・ブラウザの新規タブ動作を保ちます。
+  // タップ後180msだけ形を残し、連打でも現在の形からなめらかに遷移。
+  const activePointers = new Map();
+  const timers = new Map();
+  const hold = element => {
+    clearTimeout(timers.get(element));
+    timers.delete(element);
+    element.classList.add('is-pressed');
+  };
+  const release = element => {
+    if (!element) return;
+    clearTimeout(timers.get(element));
+    timers.set(element, setTimeout(() => { element.classList.remove('is-pressed'); timers.delete(element); }, 180));
+  };
+  const clearInput = () => {
+    timers.forEach(timer => clearTimeout(timer));
+    timers.clear();
+    activePointers.clear();
+    document.querySelectorAll('.is-pressed').forEach(element => element.classList.remove('is-pressed'));
+  };
+  document.addEventListener('pointerdown', event => {
+    if (!event.isPrimary || event.button !== 0) return;
+    const element = event.target.closest('.pressable');
+    if (element) { hold(element); activePointers.set(event.pointerId, element); }
+  });
+  document.addEventListener('pointerup', event => { release(activePointers.get(event.pointerId)); activePointers.delete(event.pointerId); });
+  document.addEventListener('pointercancel', clearInput);
+  document.addEventListener('click', event => {
+    // キーボードではfocus-visibleの色変化だけにし、拡縮は行いません。
+    if (event.detail === 0) return;
+    const element = event.target.closest('.pressable');
+    if (element) { hold(element); release(element); }
+  });
+  window.addEventListener('blur', clearInput);
+  window.addEventListener('pageshow', clearInput);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) clearInput(); });
 })();
 
