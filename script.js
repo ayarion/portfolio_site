@@ -1,13 +1,13 @@
-/* 差し替え用データ。作品は名前・画像・URLのみで表示し、説明文は表示しません。
+/* 差し替え用データ。個人制作は名前・画像・URLのみ、チーム制作はcaptionも表示。
  * artwork: 透過切り抜き画像。Kinto-Logのみ元の画面をCSSでアーチ状に見せます。
  * action: 'download' はtogameだけ。URLは指定されたApp Storeのページです。
- * email: 決まり次第入力するとCONTACTにメールリンクを表示します。
+ * email: CONTACTのメールリンク。caption: チーム制作の見出し下の一言。
  */
 window.PORTFOLIO = {
   name: 'ayarion',
   github: 'https://github.com/ayarion',
   x: 'https://x.com/lavien_kan',
-  email: '',
+  email: 'ayarionpc@gmail.com',
   skills: ['HTML', 'CSS', 'JavaScript', 'Python', 'C'],
   projects: [
     { id: 'togame', title: 'togame', url: 'https://apps.apple.com/jp/app/sns%E3%82%92%E3%82%AD%E3%83%A3%E3%83%A9%E3%81%8C%E3%83%88%E3%82%AC%E3%83%A1%E3%82%8B/id6811971132', action: 'download', artwork: 'assets/artwork/togame.png', alt: 'togameの青・黄・紫・ピンクのキャラクターとロゴ', width: 1536, height: 1024 },
@@ -15,12 +15,13 @@ window.PORTFOLIO = {
     { id: 'kinto-log', title: 'Kinto-Log', url: 'https://tsukuriba.org/kinto-log/', artwork: 'assets/screenshots/kinto-log-01.jpg', alt: 'Kinto-Logのトレーニング記録画面', shape: 'arch', width: 908, height: 1614 }
   ],
   teamProjects: [
-    { id: 'mersampo', title: 'mersampo', url: 'https://tsukuriba.org/mersampo/', artwork: 'assets/artwork/mersampo.png', alt: 'mersampoのお店、人々、街路樹が並ぶ街並み', width: 1536, height: 1024 }
+    { id: 'mersampo', title: 'mersampo', caption: 'Mercari AI Agent Hackathon 制作作品', url: 'https://tsukuriba.org/mersampo/', artwork: 'assets/artwork/mersampo.png', alt: 'mersampoのお店、人々、街路樹が並ぶ街並み', width: 1536, height: 1024 }
   ]
 };
 
 (() => {
   'use strict';
+  initOpening();
   const data = window.PORTFOLIO;
   const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
   const safeURL = value => {
@@ -45,6 +46,7 @@ window.PORTFOLIO = {
     return '<article class="project project--' + escapeHTML(project.id) + (reverse ? ' project--reverse' : '') + ' section-reveal" aria-labelledby="title-' + escapeHTML(project.id) + '">' +
       '<figure class="project-visual' + (project.shape === 'arch' ? ' project-visual--arch' : '') + '"><img src="' + escapeHTML(project.artwork) + '" alt="' + escapeHTML(project.alt) + '" width="' + project.width + '" height="' + project.height + '" loading="lazy" decoding="async"></figure>' +
       '<div class="project-copy"><h3 id="title-' + escapeHTML(project.id) + '">' + escapeHTML(project.title) + '</h3>' +
+      (team && project.caption ? '<p class="project-description">' + escapeHTML(project.caption) + '</p>' : '') +
       (url ? '<a class="pressable ' + (project.action === 'download' ? 'download-link' : 'project-link') + '" href="' + escapeHTML(url) + '" target="_blank" rel="noopener noreferrer" aria-label="' + escapeHTML(label) + '">' + action + '</a>' : '') + '</div></article>';
   }
 
@@ -118,5 +120,81 @@ window.PORTFOLIO = {
   window.addEventListener('blur', clearInput);
   window.addEventListener('pageshow', clearInput);
   document.addEventListener('visibilitychange', () => { if (document.hidden) clearInput(); });
+
+  function initOpening() {
+    const root = document.documentElement;
+    const opening = document.getElementById('opening');
+    if (!opening) return;
+    const motionPreference = matchMedia('(prefers-reduced-motion: reduce)');
+    // Recheck: preferences or tab visibility can change while the script loads.
+    if (!root.hasAttribute('data-opening') || motionPreference.matches || document.hidden || location.hash) {
+      clearTimeout(window.portfolioIntroFailsafe);
+      root.removeAttribute('data-opening');
+      opening.remove();
+      return;
+    }
+
+    // First-load delight: 1.5s to compose the seal, 0.7s for the paper to open.
+    // Only font readiness is awaited; offscreen lazy images never delay entry.
+    const minimumMs = 1500;
+    const readinessLimitMs = 2600;
+    const exitMs = 700;
+    const started = performance.now();
+    let leaving = false;
+    let removed = false;
+    let exitTimer;
+    let readyTimer;
+    const content = [...document.querySelectorAll('.site-header, main, .skip-link, noscript')];
+    opening.removeAttribute('aria-hidden');
+    content.forEach(element => { element.inert = true; element.setAttribute('data-opening-inert', ''); });
+
+    function removeOpening() {
+      if (removed) return;
+      removed = true;
+      const returnFocus = opening.contains(document.activeElement);
+      clearTimeout(exitTimer);
+      clearTimeout(readyTimer);
+      clearTimeout(window.portfolioIntroFailsafe);
+      root.removeAttribute('data-opening');
+      content.forEach(element => { element.inert = false; element.removeAttribute('data-opening-inert'); });
+      opening.remove();
+      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('pageshow', onPageShow);
+      motionPreference.removeEventListener('change', onMotionChange);
+      if (returnFocus) document.querySelector('.wordmark')?.focus({ preventScroll: true });
+    }
+    function finish(immediate = false) {
+      if (removed) return;
+      if (immediate) { removeOpening(); return; }
+      if (leaving) return;
+      leaving = true;
+      opening.classList.add('is-leaving');
+      exitTimer = setTimeout(removeOpening, exitMs);
+    }
+    function onKey(event) {
+      if (['Escape', 'PageDown', 'PageUp', 'Home', 'End', 'ArrowDown', 'ArrowUp', ' '].includes(event.key)) finish(true);
+    }
+    function onVisibility() { if (document.hidden) finish(true); }
+    function onPageShow(event) { if (event.persisted) finish(true); }
+    function onMotionChange(event) { if (event.matches) finish(true); }
+    opening.querySelector('.opening-skip').addEventListener('click', event => finish(event.detail === 0));
+    // Scroll intent dismisses the paper first, then lets native scrolling proceed.
+    opening.addEventListener('wheel', () => finish(true), { passive: true });
+    opening.addEventListener('touchmove', () => finish(true), { passive: true });
+    document.addEventListener('keydown', onKey);
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('pageshow', onPageShow);
+    motionPreference.addEventListener('change', onMotionChange);
+
+    let readinessTimer;
+    const fontsReady = document.fonts ? document.fonts.ready.catch(error => {
+      console.error('オープニングのフォント読み込みを確認してください。', error);
+    }) : Promise.resolve();
+    Promise.race([fontsReady, new Promise(resolve => { readinessTimer = setTimeout(resolve, readinessLimitMs); })]).then(() => {
+      clearTimeout(readinessTimer);
+      if (!removed && !leaving) readyTimer = setTimeout(() => finish(), Math.max(0, minimumMs - (performance.now() - started)));
+    });
+  }
 })();
 

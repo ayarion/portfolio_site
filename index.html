@@ -10,20 +10,53 @@
   <meta property="og:type" content="website">
   <meta property="og:locale" content="ja_JP">
   <meta property="og:title" content="ayarion | Portfolio">
-  <meta property="og:description" content="つくることを、楽しむ。ayarionのポートフォリオ。">
+  <meta property="og:description" content="つくることを楽しむ。ayarionのポートフォリオ。">
   <meta property="og:url" content="https://tsukuriba.org/">
   <meta property="og:image" content="https://tsukuriba.org/assets/og-town.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="ayarion | Portfolio">
-  <meta name="twitter:description" content="つくることを、楽しむ。ayarionのポートフォリオ。">
+  <meta name="twitter:description" content="つくることを楽しむ。ayarionのポートフォリオ。">
   <meta name="twitter:image" content="https://tsukuriba.org/assets/og-town.png">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" sizes="180x180">
-  <link rel="stylesheet" href="style.css?v=20260922-editorial">
-  <script defer src="script.js?v=20260922-editorial"></script>
+  <script>
+    // Hash links and reduced-motion visitors go straight to their content.
+    // A failed script/font request must never leave a blocking loading screen.
+    if (!location.hash && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      document.documentElement.setAttribute('data-opening', '');
+      window.portfolioIntroFailsafe = setTimeout(function () {
+        document.documentElement.removeAttribute('data-opening');
+        document.querySelectorAll('[data-opening-inert]').forEach(function (element) {
+          element.inert = false;
+          element.removeAttribute('data-opening-inert');
+        });
+        var opening = document.getElementById('opening');
+        if (opening) opening.remove();
+      }, 5000);
+    }
+  </script>
+  <link rel="stylesheet" href="style.css?v=20260922-opening">
+  <script defer src="script.js?v=20260922-opening"></script>
 </head>
 <body>
+  <div class="opening" id="opening" aria-hidden="true">
+    <div class="opening-paper opening-paper--left" aria-hidden="true"></div>
+    <div class="opening-paper opening-paper--right" aria-hidden="true"></div>
+    <div class="opening-center" aria-hidden="true">
+      <div class="opening-seal">
+        <div class="opening-aura"></div>
+        <div class="opening-orbit opening-orbit--one"></div>
+        <div class="opening-orbit opening-orbit--two"></div>
+        <div class="opening-track-orbit"><span class="opening-star"><span class="spark"></span></span></div>
+        <p class="opening-word"><span>a</span><span>y</span><span>a</span><span>r</span><span>i</span><span>o</span><span>n</span></p>
+      </div>
+      <p class="opening-caption">A LITTLE SPARK</p>
+      <div class="opening-track"><span></span></div>
+    </div>
+    <p class="sr-only" role="status">ポートフォリオを準備しています。</p>
+    <button class="opening-skip" type="button" aria-label="オープニングをスキップ">SKIP INTRO <span aria-hidden="true">↗</span></button>
+  </div>
   <a class="skip-link" href="#about">メインコンテンツへ移動</a>
   <header class="site-header">
     <a class="wordmark" href="#top" aria-label="ayarionのポートフォリオ先頭へ">ayarion</a>
@@ -42,7 +75,7 @@
       <div class="hero-type">
         <p class="hero-kicker">PORTFOLIO</p>
         <div class="hero-frame"><h1 id="hero-title">ayarion</h1><span class="spark spark--hero" aria-hidden="true"></span></div>
-        <p class="hero-tagline">つくることを、楽しむ。</p>
+        <p class="hero-tagline">つくることを楽しむ。</p>
       </div>
     </section>
     <div class="page-content">
@@ -71,7 +104,7 @@
         <span class="footer-divider" aria-hidden="true"><span class="spark"></span></span>
         <section id="contact" aria-labelledby="contact-title">
           <h2 id="contact-title">CONTACT</h2>
-          <p id="contact-status">メールアドレスは準備中です。</p>
+          <p id="contact-status"><a class="text-link pressable" href="mailto:ayarionpc@gmail.com">ayarionpc@gmail.com</a></p>
           <div class="social-links">
             <a class="text-link pressable" href="https://github.com/ayarion" target="_blank" rel="noopener noreferrer"><span>GitHub</span><span class="link-arrow" aria-hidden="true">↗</span><span class="sr-only">（新しいタブで開く）</span></a>
             <a class="text-link pressable" href="https://x.com/lavien_kan" target="_blank" rel="noopener noreferrer"><span>X</span><span class="link-arrow" aria-hidden="true">↗</span><span class="sr-only">（新しいタブで開く）</span></a>
