@@ -88,6 +88,10 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--ink);outline-offset
    Safe-area padding belongs to controls, never to the edge-to-edge fabric. */
 .opening{display:none;position:fixed;inset:0;z-index:20;overflow:visible;isolation:isolate;touch-action:none;overscroll-behavior:none;--curtain-duration:1200ms}
 html[data-opening],html[data-opening] body{background-color:var(--paper);overscroll-behavior:none}
+/* Lock only while the curtain is present, including the early inline bootstrap.
+   A fixed overlay/inert alone cannot prevent browser scroll restoration on iOS. */
+html[data-opening]{overflow:hidden;scroll-behavior:auto;overflow-anchor:none}
+html[data-opening] body{position:fixed;top:0;left:0;right:0;width:100%;overflow:hidden}
 html[data-opening] .opening{display:grid;place-items:center}
 html[data-opening] .opening *{animation-play-state:paused}
 html[data-opening="active"] .opening *{animation-play-state:running}
@@ -181,7 +185,7 @@ html[data-opening] main,html[data-opening] .site-header,html[data-opening] .skip
 @media(max-width:600px){
   /* The gradient fills the first view, including notches and browser-bar changes.
      Keep its paint separate from the safe-area padding of the title/navigation. */
-  html{background:#dfdedb}
+  html{background:var(--paper)}
   body{font-size:16px}.site-header{padding:calc(22px + env(safe-area-inset-top,0px)) max(20px,env(safe-area-inset-right,0px)) 22px max(20px,env(safe-area-inset-left,0px));gap:12px;flex-wrap:wrap}
   .wordmark{font-size:27px}.site-nav{gap:15px}
   .nav-link{font-size:12px;letter-spacing:.06em}
@@ -218,6 +222,21 @@ html[data-opening] main,html[data-opening] .site-header,html[data-opening] .skip
   .skill-list{gap:8px 20px}
   .site-footer{padding-block:30px 46px}
 }
+/* Safari paints the status/toolbar regions itself. Match that solid paper color
+   at the actual viewport edges instead of extending patterned paint offscreen.
+   Keep the middle saturated; only the first/last ~10% gently blend into paper. */
+@media(max-width:600px){
+  :root{--screen-edge-fade:clamp(64px,10svh,96px);--screen-edge-blend:linear-gradient(to bottom,var(--paper) 0 6px,transparent var(--screen-edge-fade),transparent calc(100% - var(--screen-edge-fade)),var(--paper) calc(100% - 6px) 100%)}
+  .hero{overflow:clip}
+  .hero::after,.opening::after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background:var(--screen-edge-blend)}
+  .opening-center{position:relative;z-index:1}
+  .opening-skip{z-index:1}
+  /* This veil stays on the viewport, not on either moving/oversized curtain.
+     Hand off to the hero's matching edge treatment during the final 240ms. */
+  .opening::after{transition:opacity 240ms var(--ease-out)}
+  .opening.is-leaving::after{opacity:0;transition-delay:calc(var(--curtain-duration) - 240ms)}
+  body::before{-webkit-mask-image:linear-gradient(transparent,#000 var(--screen-edge-fade),#000 calc(100% - var(--screen-edge-fade)),transparent);mask-image:linear-gradient(transparent,#000 var(--screen-edge-fade),#000 calc(100% - var(--screen-edge-fade)),transparent)}
+}
 @media(max-width:380px){
   .site-header{justify-content:center}
   .wordmark{font-size:26px}
@@ -228,6 +247,8 @@ html[data-opening] main,html[data-opening] .site-header,html[data-opening] .skip
 }
 @media(prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
+  .opening::after{transition:none}
+  .opening.is-leaving::after{opacity:1}
   .section-reveal,.section-reveal[data-pending]{transform:none}
   .section-reveal[data-animate]{transition:opacity 150ms linear}
   .pressable,.pressable::before,.pressable::after,.download-icon,.link-arrow,.nav-link::after{transition:opacity 150ms linear}

@@ -14,7 +14,7 @@ window.PORTFOLIO = {
     { id: 'kinto-log', title: 'Kinto-Log', url: 'https://tsukuriba.org/kinto-log/', artwork: 'assets/screenshots/kinto-log-01.jpg', alt: 'Kinto-Logのトレーニング記録画面', shape: 'arch', width: 908, height: 1614 }
   ],
   teamProjects: [
-    { id: 'mersampo', title: 'mersampo', caption: 'Mercari AI Agent Hackathon 制作作品', url: 'https://tsukuriba.org/mersampo/', artwork: 'assets/artwork/mersampo.png', alt: 'mersampoのお店、人々、街路樹が並ぶ街並み', width: 1536, height: 1024 }
+    { id: 'mersampo', title: 'mersampo', caption: 'Mercari AI Agent Hackathon 優秀賞受賞', url: 'https://tsukuriba.org/mersampo/', artwork: 'assets/artwork/mersampo.png', alt: 'mersampoのお店、人々、街路樹が並ぶ街並み', width: 1536, height: 1024 }
   ]
 };
 
@@ -129,6 +129,7 @@ window.PORTFOLIO = {
     if (!root.hasAttribute('data-opening') || (location.hash && location.hash !== '#top')) {
       window.cancelPortfolioIntroFallback?.();
       root.removeAttribute('data-opening');
+      window.releasePortfolioIntroScroll?.();
       opening.remove();
       return;
     }
@@ -161,6 +162,9 @@ window.PORTFOLIO = {
       root.removeAttribute('data-opening');
       content.forEach(element => { element.inert = false; element.removeAttribute('data-opening-inert'); });
       opening.remove();
+      // Unlock first, then reset synchronously: never smooth-scroll through works.
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      window.releasePortfolioIntroScroll?.();
       document.removeEventListener('keydown', onKey);
       document.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener('pageshow', onPageShow);
@@ -173,6 +177,7 @@ window.PORTFOLIO = {
       if (immediate) { removeOpening(); return; }
       if (leaving) return;
       leaving = true;
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
       cancelAnimationFrame(frame);
       root.setAttribute('data-opening', 'active');
       opening.classList.add('is-leaving');
@@ -194,7 +199,11 @@ window.PORTFOLIO = {
       if (!document.hidden && !removed && !leaving) frame = requestAnimationFrame(() => { frame = requestAnimationFrame(tick); });
     }
     function onKey(event) {
-      if (['Escape', 'PageDown', 'PageUp', 'Home', 'End', 'ArrowDown', 'ArrowUp', ' '].includes(event.key)) finish(true);
+      if (['Escape', 'PageDown', 'PageUp', 'Home', 'End', 'ArrowDown', 'ArrowUp', ' '].includes(event.key)) {
+        // Consume this skip gesture; its default must not scroll the revealed page.
+        event.preventDefault();
+        finish(true);
+      }
     }
     function onVisibility() {
       if (document.hidden) {
@@ -208,8 +217,9 @@ window.PORTFOLIO = {
     function onPageShow(event) { if (event.persisted) finish(true); }
     function onMotionChange() { if (leaving) finish(true); }
     opening.querySelector('.opening-skip').addEventListener('click', event => finish(event.detail === 0));
-    // Scroll intent dismisses the curtain first, then lets native scrolling proceed.
-    opening.addEventListener('wheel', () => finish(true), { passive: true });
+    // Absorb the wheel gesture (and its inertia) while the curtain opens. Scrolling
+    // the actual page starts only with a new gesture after the title is visible.
+    opening.addEventListener('wheel', event => { event.preventDefault(); finish(); }, { passive: false });
     // Minor finger movement must not swallow the introduction on phones.
     // Touch scrolling is contained by CSS; the visible SKIP button remains usable.
     document.addEventListener('keydown', onKey);

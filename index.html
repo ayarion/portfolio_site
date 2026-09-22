@@ -23,8 +23,31 @@
   <script>
     // Home opens on every device, including #top and reduced-motion visitors.
     // The watchdog counts painted, visible time, even if the main script stalls.
-    if (!location.hash || location.hash === '#top') {
+    var portfolioNavigation = performance.getEntriesByType('navigation')[0];
+    if ((!location.hash || location.hash === '#top') && portfolioNavigation?.type !== 'back_forward') {
+      // A home-page reload must reveal the title, not the previous WORKS position.
+      // Set this in <head>, before Safari/Chrome restore the document scroll.
+      var introPreviousRestoration = history.scrollRestoration;
+      var introPageShown = document.readyState === 'complete';
+      var introScrollReleased = false;
+      if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+      function restoreIntroHistory() {
+        if ('scrollRestoration' in history) history.scrollRestoration = introPreviousRestoration;
+      }
+      function onIntroPageShown() {
+        introPageShown = true;
+        if (introScrollReleased) restoreIntroHistory();
+      }
+      // Do not re-enable a late initial restoration before pageshow, nor force
+      // the title again after the visitor has begun scrolling intentionally.
+      window.releasePortfolioIntroScroll = function () {
+        introScrollReleased = true;
+        if (introPageShown) restoreIntroHistory();
+      };
+      window.addEventListener('pageshow', onIntroPageShown, { once: true });
+      window.addEventListener('pagehide', restoreIntroHistory, { once: true });
       document.documentElement.setAttribute('data-opening', 'pending');
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
       var introWatchFrame;
       var introWatchLast = null;
       var introWatchVisibleMs = 0;
@@ -43,9 +66,13 @@
         });
         var opening = document.getElementById('opening');
         if (opening) opening.remove();
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+        window.releasePortfolioIntroScroll?.();
       }
       function pauseIntroWatch() { introWatchLast = null; }
       function watchIntroPaint(now) {
+        // Keep the hidden title at the origin during late layout / scroll restore.
+        if (window.scrollX || window.scrollY) window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
         var opening = document.getElementById('opening');
         if (!introPaintReady && opening) {
           introPaintReady = getComputedStyle(opening).display === 'grid';
@@ -62,8 +89,8 @@
       introWatchFrame = requestAnimationFrame(watchIntroPaint);
     }
   </script>
-  <link rel="stylesheet" href="style.css?v=20260922-drapes">
-  <script defer src="script.js?v=20260922-drapes"></script>
+  <link rel="stylesheet" href="style.css?v=20260922-safari-edges">
+  <script defer src="script.js?v=20260922-safari-edges"></script>
 </head>
 <body>
   <div class="opening" id="opening" aria-hidden="true">
