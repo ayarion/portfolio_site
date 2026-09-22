@@ -5,7 +5,6 @@
  */
 window.PORTFOLIO = {
   name: 'ayarion',
-  github: 'https://github.com/ayarion',
   x: 'https://x.com/lavien_kan',
   email: 'ayarionpc@gmail.com',
   skills: ['HTML', 'CSS', 'JavaScript', 'Python', 'C'],
@@ -134,11 +133,11 @@ window.PORTFOLIO = {
       return;
     }
 
-    // First-load delight: 1.5s to compose the seal, 0.7s for the paper to open.
+    // First-load delight: 1.5s to compose the seal, 0.9s to lift the curtain.
     // Only font readiness is awaited; offscreen lazy images never delay entry.
     const minimumMs = 1500;
     const readinessLimitMs = 2600;
-    const exitMs = 700;
+    const exitMs = 900; // Keep in sync with .opening-curtain's transition duration.
     const started = performance.now();
     let leaving = false;
     let removed = false;
@@ -179,7 +178,7 @@ window.PORTFOLIO = {
     function onPageShow(event) { if (event.persisted) finish(true); }
     function onMotionChange(event) { if (event.matches) finish(true); }
     opening.querySelector('.opening-skip').addEventListener('click', event => finish(event.detail === 0));
-    // Scroll intent dismisses the paper first, then lets native scrolling proceed.
+    // Scroll intent dismisses the curtain first, then lets native scrolling proceed.
     opening.addEventListener('wheel', () => finish(true), { passive: true });
     opening.addEventListener('touchmove', () => finish(true), { passive: true });
     document.addEventListener('keydown', onKey);
