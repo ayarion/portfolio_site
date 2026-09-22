@@ -125,24 +125,27 @@ window.PORTFOLIO = {
     const opening = document.getElementById('opening');
     if (!opening) return;
     const motionPreference = matchMedia('(prefers-reduced-motion: reduce)');
-    // Recheck: preferences or tab visibility can change while the script loads.
-    if (!root.hasAttribute('data-opening') || motionPreference.matches || document.hidden || location.hash) {
-      clearTimeout(window.portfolioIntroFailsafe);
+    // Deep links go to their content; #top is still the home introduction.
+    if (!root.hasAttribute('data-opening') || (location.hash && location.hash !== '#top')) {
+      window.cancelPortfolioIntroFallback?.();
       root.removeAttribute('data-opening');
       opening.remove();
       return;
     }
 
-    // First-load delight: 1.5s to compose the seal, 0.9s to lift the curtain.
+    // Count visible time only, starting after the first paint. Mobile browsers
+    // may load in a hidden tab; neither the clock nor CSS motion advances there.
     // Only font readiness is awaited; offscreen lazy images never delay entry.
     const minimumMs = 1500;
     const readinessLimitMs = 2600;
     const exitMs = 900; // Keep in sync with .opening-curtain's transition duration.
-    const started = performance.now();
     let leaving = false;
     let removed = false;
+    let fontsReady = false;
+    let visibleMs = 0;
+    let lastFrame = null;
+    let frame;
     let exitTimer;
-    let readyTimer;
     const content = [...document.querySelectorAll('.site-header, main, .skip-link, noscript')];
     opening.removeAttribute('aria-hidden');
     content.forEach(element => { element.inert = true; element.setAttribute('data-opening-inert', ''); });
@@ -152,14 +155,15 @@ window.PORTFOLIO = {
       removed = true;
       const returnFocus = opening.contains(document.activeElement);
       clearTimeout(exitTimer);
-      clearTimeout(readyTimer);
-      clearTimeout(window.portfolioIntroFailsafe);
+      cancelAnimationFrame(frame);
+      window.cancelPortfolioIntroFallback?.();
       root.removeAttribute('data-opening');
       content.forEach(element => { element.inert = false; element.removeAttribute('data-opening-inert'); });
       opening.remove();
       document.removeEventListener('keydown', onKey);
       document.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener('pageshow', onPageShow);
+      window.removeEventListener('portfolio:intro-fallback', removeOpening);
       motionPreference.removeEventListener('change', onMotionChange);
       if (returnFocus) document.querySelector('.wordmark')?.focus({ preventScroll: true });
     }
@@ -168,32 +172,54 @@ window.PORTFOLIO = {
       if (immediate) { removeOpening(); return; }
       if (leaving) return;
       leaving = true;
+      cancelAnimationFrame(frame);
       opening.classList.add('is-leaving');
-      exitTimer = setTimeout(removeOpening, exitMs);
+      exitTimer = setTimeout(removeOpening, motionPreference.matches ? 150 : exitMs);
+    }
+    function tick(now) {
+      if (removed || leaving || document.hidden) return;
+      if (lastFrame !== null) visibleMs += now - lastFrame;
+      lastFrame = now;
+      root.setAttribute('data-opening', 'active');
+      const duration = fontsReady ? (motionPreference.matches ? 600 : minimumMs) : readinessLimitMs;
+      if (visibleMs >= duration) finish();
+      else frame = requestAnimationFrame(tick);
+    }
+    function startVisibleFrames() {
+      cancelAnimationFrame(frame);
+      lastFrame = null;
+      // One frame for layout/paint before starting the visible-time clock.
+      if (!document.hidden && !removed && !leaving) frame = requestAnimationFrame(() => { frame = requestAnimationFrame(tick); });
     }
     function onKey(event) {
       if (['Escape', 'PageDown', 'PageUp', 'Home', 'End', 'ArrowDown', 'ArrowUp', ' '].includes(event.key)) finish(true);
     }
-    function onVisibility() { if (document.hidden) finish(true); }
+    function onVisibility() {
+      if (document.hidden) {
+        cancelAnimationFrame(frame);
+        lastFrame = null;
+        root.setAttribute('data-opening', 'paused');
+        // The visitor has already watched the opening if the exit has begun.
+        if (leaving) finish(true);
+      } else startVisibleFrames();
+    }
     function onPageShow(event) { if (event.persisted) finish(true); }
-    function onMotionChange(event) { if (event.matches) finish(true); }
+    function onMotionChange() { if (leaving) finish(true); }
     opening.querySelector('.opening-skip').addEventListener('click', event => finish(event.detail === 0));
     // Scroll intent dismisses the curtain first, then lets native scrolling proceed.
     opening.addEventListener('wheel', () => finish(true), { passive: true });
-    opening.addEventListener('touchmove', () => finish(true), { passive: true });
+    // Minor finger movement must not swallow the introduction on phones.
+    // Touch scrolling is contained by CSS; the visible SKIP button remains usable.
     document.addEventListener('keydown', onKey);
     document.addEventListener('visibilitychange', onVisibility);
     window.addEventListener('pageshow', onPageShow);
+    window.addEventListener('portfolio:intro-fallback', removeOpening);
     motionPreference.addEventListener('change', onMotionChange);
 
-    let readinessTimer;
-    const fontsReady = document.fonts ? document.fonts.ready.catch(error => {
+    const fontReadiness = document.fonts ? document.fonts.ready.catch(error => {
       console.error('オープニングのフォント読み込みを確認してください。', error);
     }) : Promise.resolve();
-    Promise.race([fontsReady, new Promise(resolve => { readinessTimer = setTimeout(resolve, readinessLimitMs); })]).then(() => {
-      clearTimeout(readinessTimer);
-      if (!removed && !leaving) readyTimer = setTimeout(() => finish(), Math.max(0, minimumMs - (performance.now() - started)));
-    });
+    fontReadiness.then(() => { fontsReady = true; });
+    startVisibleFrames();
   }
 })();
-

@@ -21,11 +21,21 @@
   <link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" sizes="180x180">
   <script>
-    // Hash links and reduced-motion visitors go straight to their content.
-    // A failed script/font request must never leave a blocking loading screen.
-    if (!location.hash && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      document.documentElement.setAttribute('data-opening', '');
-      window.portfolioIntroFailsafe = setTimeout(function () {
+    // Home opens on every device, including #top and reduced-motion visitors.
+    // The watchdog counts painted, visible time, even if the main script stalls.
+    if (!location.hash || location.hash === '#top') {
+      document.documentElement.setAttribute('data-opening', 'pending');
+      var introWatchFrame;
+      var introWatchLast = null;
+      var introWatchVisibleMs = 0;
+      var introPaintReady = false;
+      function cancelIntroFallback() {
+        cancelAnimationFrame(introWatchFrame);
+        document.removeEventListener('visibilitychange', pauseIntroWatch);
+      }
+      function releaseIntroFallback() {
+        cancelIntroFallback();
+        window.dispatchEvent(new Event('portfolio:intro-fallback'));
         document.documentElement.removeAttribute('data-opening');
         document.querySelectorAll('[data-opening-inert]').forEach(function (element) {
           element.inert = false;
@@ -33,11 +43,27 @@
         });
         var opening = document.getElementById('opening');
         if (opening) opening.remove();
-      }, 5000);
+      }
+      function pauseIntroWatch() { introWatchLast = null; }
+      function watchIntroPaint(now) {
+        var opening = document.getElementById('opening');
+        if (!introPaintReady && opening) {
+          introPaintReady = getComputedStyle(opening).display === 'grid';
+        }
+        if (!document.hidden && introPaintReady) {
+          if (introWatchLast !== null) introWatchVisibleMs += now - introWatchLast;
+          introWatchLast = now;
+        } else introWatchLast = null;
+        if (introWatchVisibleMs >= 5000) releaseIntroFallback();
+        else introWatchFrame = requestAnimationFrame(watchIntroPaint);
+      }
+      window.cancelPortfolioIntroFallback = cancelIntroFallback;
+      document.addEventListener('visibilitychange', pauseIntroWatch);
+      introWatchFrame = requestAnimationFrame(watchIntroPaint);
     }
   </script>
-  <link rel="stylesheet" href="style.css?v=20260922-curtain">
-  <script defer src="script.js?v=20260922-curtain"></script>
+  <link rel="stylesheet" href="style.css?v=20260922-mobile">
+  <script defer src="script.js?v=20260922-mobile"></script>
 </head>
 <body>
   <div class="opening" id="opening" aria-hidden="true">
@@ -111,4 +137,3 @@
   <noscript><div class="noscript"><p>作品リンク</p><a href="https://apps.apple.com/jp/app/id6811971132">togame — App Store</a><a href="https://tsukuriba.org/OjiMate/">OjiMate</a><a href="https://tsukuriba.org/kinto-log/">Kinto-Log</a><a href="https://tsukuriba.org/mersampo/">mersampo</a></div></noscript>
 </body>
 </html>
-
