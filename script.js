@@ -2,6 +2,7 @@
  * artwork: 透過切り抜き画像。Kinto-Logのみ元の画面をCSSでアーチ状に見せます。
  * action: 'download' はtogameだけ。URLは指定されたApp Storeのページです。
  * email: CONTACTのメールリンク。caption: チーム制作の見出し下の一言。
+ * repoUrl: 作品の紹介サイトとは別にGitHubリンクを表示する作品で使用します。
  */
 window.PORTFOLIO = {
   name: 'ayarion',
@@ -14,7 +15,8 @@ window.PORTFOLIO = {
     { id: 'kinto-log', title: 'Kinto-Log', url: 'https://tsukuriba.org/kinto-log/', artwork: 'assets/screenshots/kinto-log-01.jpg', alt: 'Kinto-Logのトレーニング記録画面', shape: 'arch', width: 908, height: 1614 }
   ],
   teamProjects: [
-    { id: 'mersampo', title: 'mersampo', caption: 'Mercari AI Agent Hackathon 優秀賞受賞', url: 'https://tsukuriba.org/mersampo/', artwork: 'assets/artwork/mersampo.png', alt: 'mersampoのお店、人々、街路樹が並ぶ街並み', width: 1536, height: 1024 }
+    { id: 'mersampo', title: 'mersampo', caption: 'Mercari AI Agent Hackathon 優秀賞受賞', url: 'https://tsukuriba.org/mersampo/', artwork: 'assets/artwork/mersampo.png', alt: 'mersampoのお店、人々、街路樹が並ぶ街並み', width: 1536, height: 1024 },
+    { id: 'businessai-origin-2026', title: 'BusinessAI Hackathon Origin 2026', caption: 'BusinessAI Hackathon Origin 2026 制作', url: 'https://wanpo.tsukuriba.org/', repoUrl: 'https://github.com/ayarion/Origin-AI-Hackathon', artwork: '', alt: 'BusinessAI Hackathon Origin 2026の作品', placeholder: 'BusinessAI Hackathon\nOrigin 2026' }
   ]
 };
 
@@ -37,16 +39,23 @@ window.PORTFOLIO = {
 
   function projectMarkup(project, index, team = false) {
     const url = safeURL(project.url);
+    const repoURL = safeURL(project.repoUrl);
     const reverse = team || index % 2 === 1;
     const action = project.action === 'download'
       ? downloadIcon + '<span class="download-label">GET THE APP</span><span class="download-store">App Store</span>'
       : '<span>作品を見る</span><span class="link-arrow" aria-hidden="true">↗</span>';
     const label = project.action === 'download' ? project.title + 'をApp Storeでダウンロード（新しいタブで開く）' : project.title + 'の作品ページ（新しいタブで開く）';
+    const repoLabel = project.title + 'のGitHubリポジトリ（新しいタブで開く）';
+    const visual = project.artwork
+      ? '<figure class="project-visual' + (project.shape === 'arch' ? ' project-visual--arch' : '') + '"><img src="' + escapeHTML(project.artwork) + '" alt="' + escapeHTML(project.alt) + '" width="' + (project.width || 1536) + '" height="' + (project.height || 1024) + '" loading="lazy" decoding="async"></figure>'
+      : '<figure class="project-visual project-visual--placeholder" role="img" aria-label="' + escapeHTML(project.alt) + '"><span>' + escapeHTML(project.placeholder || project.title) .replace(/\n/g, '<br>') + '</span></figure>';
+    const actions = (url ? '<a class="pressable ' + (project.action === 'download' ? 'download-link' : 'project-link') + '" href="' + escapeHTML(url) + '" target="_blank" rel="noopener noreferrer" aria-label="' + escapeHTML(label) + '">' + action + '</a>' : '') +
+      (repoURL ? '<a class="pressable project-link project-link--repo" href="' + escapeHTML(repoURL) + '" target="_blank" rel="noopener noreferrer" aria-label="' + escapeHTML(repoLabel) + '"><span>GitHub</span><span class="link-arrow" aria-hidden="true">↗</span></a>' : '');
     return '<article class="project project--' + escapeHTML(project.id) + (reverse ? ' project--reverse' : '') + ' section-reveal" aria-labelledby="title-' + escapeHTML(project.id) + '">' +
-      '<figure class="project-visual' + (project.shape === 'arch' ? ' project-visual--arch' : '') + '"><img src="' + escapeHTML(project.artwork) + '" alt="' + escapeHTML(project.alt) + '" width="' + project.width + '" height="' + project.height + '" loading="lazy" decoding="async"></figure>' +
+      visual +
       '<div class="project-copy"><h3 id="title-' + escapeHTML(project.id) + '">' + escapeHTML(project.title) + '</h3>' +
       (team && project.caption ? '<p class="project-description">' + escapeHTML(project.caption) + '</p>' : '') +
-      (url ? '<a class="pressable ' + (project.action === 'download' ? 'download-link' : 'project-link') + '" href="' + escapeHTML(url) + '" target="_blank" rel="noopener noreferrer" aria-label="' + escapeHTML(label) + '">' + action + '</a>' : '') + '</div></article>';
+      (actions ? '<div class="project-actions">' + actions + '</div>' : '') + '</div></article>';
   }
 
   document.querySelector('#personal-projects').innerHTML = data.projects.map((project, index) => projectMarkup(project, index)).join('');

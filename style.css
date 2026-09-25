@@ -65,6 +65,10 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--ink);outline-offset
 .project-visual{position:relative;min-width:0;margin:0;width:100%}
 .project-visual img{width:100%;object-fit:contain}
 .project-copy{position:relative;min-width:0}
+.project-actions{display:flex;flex-wrap:wrap;align-items:center;gap:18px}
+.project-link--repo{font-size:14px}
+.project-visual--placeholder{min-height:360px;display:grid;place-items:center;padding:32px;background:linear-gradient(135deg,#d8e2dd,#f0d6c4 52%,#cbdde4);border:1px solid #88857b80;border-radius:2px;box-shadow:10px 12px 0 #24232218}
+.project-visual--placeholder span{max-width:80%;font:400 clamp(24px,4vw,50px)/1.25 var(--font-display);text-align:center;letter-spacing:.02em}
 .project-copy h3{font:400 clamp(44px,5.6vw,72px)/1.15 var(--font-display);letter-spacing:-.035em;margin-bottom:32px;overflow-wrap:anywhere}
 .project--togame .project-copy{display:flex;flex-direction:column;align-items:center;justify-self:start;width:fit-content;max-width:100%}
 .project-copy h3:has(+.project-description){margin-bottom:16px}
@@ -212,10 +216,12 @@ html[data-opening] main,html[data-opening] .site-header,html[data-opening] .skip
   .project-copy h3{font-size:44px;margin-bottom:16px}
   .project--togame .project-copy{justify-self:center}
   .project-description{margin-inline:auto;margin-bottom:22px}
+  .project-actions{justify-content:center}
   .project-visual{width:min(100%,440px);margin-inline:auto}
   .project-visual--arch{width:min(280px,85%);height:365px}
   .project--mersampo .project-visual{width:108%;max-width:none;margin-left:-4%}
   .download-link{margin-left:0}.download-icon{width:28px;height:30px}
+  .project-visual--placeholder{min-height:260px}
   .team{margin-top:18px}
   .footer-content{grid-template-columns:minmax(0,1fr);gap:40px;padding:42px 8px}
   .footer-divider{display:none}.footer-content h2{font-size:22px}
