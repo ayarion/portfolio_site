@@ -260,3 +260,4 @@ html[data-opening] main,html[data-opening] .site-header,html[data-opening] .skip
   .pressable,.pressable::before,.pressable::after,.download-icon,.link-arrow,.nav-link::after{transition:opacity 150ms linear}
   .pressable:active,.pressable.is-pressed,.pressable::after,.pressable:hover .link-arrow,.pressable .link-arrow,.pressable .download-icon{transform:none!important}
 }
+
