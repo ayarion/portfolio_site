@@ -75,6 +75,8 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--ink);outline-offset
 .project-description{max-width:32ch;margin:0 0 26px;color:var(--muted);font:400 clamp(15px,1.2vw,17px)/1.8 var(--font-japanese);letter-spacing:.025em;text-wrap:pretty;word-break:keep-all}
 .project-visual--arch{width:min(370px,86%);height:480px;margin-inline:auto;border-radius:49% 49% 0 0 / 34% 34% 0 0;overflow:hidden;-webkit-mask-image:linear-gradient(#000 94%,transparent);mask-image:linear-gradient(#000 94%,transparent)}
 .project-visual--arch img{width:100%;height:auto}
+.project-visual--site-screen{overflow:hidden;border-radius:18px 18px 76px 18px;border:1px solid #364f4350;box-shadow:0 24px 45px -34px #203a3470,0 8px 16px -12px #203a3433;background:#f5f8f4}
+.project-visual--site-screen img{width:100%;height:auto}
 .project--mersampo{min-height:490px}
 .team{border-top:1px solid var(--line);margin-top:42px}
 .footer-content{position:relative;display:grid;grid-template-columns:1fr 1px 1fr;gap:72px;padding:68px 64px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
@@ -219,6 +221,7 @@ html[data-opening] main,html[data-opening] .site-header,html[data-opening] .skip
   .project-actions{justify-content:center}
   .project-visual{width:min(100%,440px);margin-inline:auto}
   .project-visual--arch{width:min(280px,85%);height:365px}
+  .project-visual--site-screen{border-radius:12px 12px 48px 12px}
   .project--mersampo .project-visual{width:108%;max-width:none;margin-left:-4%}
   .download-link{margin-left:0}.download-icon{width:28px;height:30px}
   .project-visual--placeholder{min-height:260px}
@@ -260,4 +263,3 @@ html[data-opening] main,html[data-opening] .site-header,html[data-opening] .skip
   .pressable,.pressable::before,.pressable::after,.download-icon,.link-arrow,.nav-link::after{transition:opacity 150ms linear}
   .pressable:active,.pressable.is-pressed,.pressable::after,.pressable:hover .link-arrow,.pressable .link-arrow,.pressable .download-icon{transform:none!important}
 }
-

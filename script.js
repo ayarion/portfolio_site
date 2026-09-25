@@ -1,5 +1,5 @@
 /* 差し替え用データ。個人制作は名前・画像・URLのみ、チーム制作はcaptionも表示。
- * artwork: 透過切り抜き画像。Kinto-Logのみ元の画面をCSSでアーチ状に見せます。
+ * artwork: 作品画像。Kinto-Logはアーチ型、さんぽはサイト画面の形に切り抜いて表示します。
  * action: 'download' はtogameだけ。URLは指定されたApp Storeのページです。
  * email: CONTACTのメールリンク。caption: チーム制作の見出し下の一言。
  * repoUrl: 作品の紹介サイトとは別にGitHubリンクを表示する作品で使用します。
@@ -16,7 +16,7 @@ window.PORTFOLIO = {
   ],
   teamProjects: [
     { id: 'mersampo', title: 'mersampo', caption: 'Mercari AI Agent Hackathon 優秀賞受賞', url: 'https://tsukuriba.org/mersampo/', artwork: 'assets/artwork/mersampo.png', alt: 'mersampoのお店、人々、街路樹が並ぶ街並み', width: 1536, height: 1024 },
-    { id: 'businessai-origin-2026', title: 'BusinessAI Hackathon Origin 2026', caption: 'BusinessAI Hackathon Origin 2026 制作', url: 'https://wanpo.tsukuriba.org/', repoUrl: 'https://github.com/ayarion/Origin-AI-Hackathon', artwork: 'assets/artwork/businessai-origin-2026-hero.jpg?v=20260925-hero-jpg', alt: 'Origin 2026のトップビジュアル', width: 2020, height: 778 }
+    { id: 'businessai-origin-2026', title: 'さんぽ', caption: 'BusinessAI Hackathon Origin 2026 制作', url: 'https://wanpo.tsukuriba.org/', repoUrl: 'https://github.com/ayarion/Origin-AI-Hackathon', artwork: 'assets/artwork/sanpo-homepage.jpg', shape: 'site-screen', alt: 'さんぽのWebサイトのトップ画面', width: 1800, height: 857 }
   ]
 };
 
@@ -47,7 +47,7 @@ window.PORTFOLIO = {
     const label = project.action === 'download' ? project.title + 'をApp Storeでダウンロード（新しいタブで開く）' : project.title + 'の作品ページ（新しいタブで開く）';
     const repoLabel = project.title + 'のGitHubリポジトリ（新しいタブで開く）';
     const visual = project.artwork
-      ? '<figure class="project-visual' + (project.shape === 'arch' ? ' project-visual--arch' : '') + '"><img src="' + escapeHTML(project.artwork) + '" alt="' + escapeHTML(project.alt) + '" width="' + (project.width || 1536) + '" height="' + (project.height || 1024) + '" loading="lazy" decoding="async"></figure>'
+      ? '<figure class="project-visual' + (project.shape === 'arch' ? ' project-visual--arch' : project.shape === 'site-screen' ? ' project-visual--site-screen' : '') + '"><img src="' + escapeHTML(project.artwork) + '" alt="' + escapeHTML(project.alt) + '" width="' + (project.width || 1536) + '" height="' + (project.height || 1024) + '" loading="lazy" decoding="async"></figure>'
       : '<figure class="project-visual project-visual--placeholder" role="img" aria-label="' + escapeHTML(project.alt) + '"><span>' + escapeHTML(project.placeholder || project.title) .replace(/\n/g, '<br>') + '</span></figure>';
     const actions = (url ? '<a class="pressable ' + (project.action === 'download' ? 'download-link' : 'project-link') + '" href="' + escapeHTML(url) + '" target="_blank" rel="noopener noreferrer" aria-label="' + escapeHTML(label) + '">' + action + '</a>' : '') +
       (repoURL ? '<a class="pressable project-link project-link--repo" href="' + escapeHTML(repoURL) + '" target="_blank" rel="noopener noreferrer" aria-label="' + escapeHTML(repoLabel) + '"><span>GitHub</span><span class="link-arrow" aria-hidden="true">↗</span></a>' : '');
@@ -244,7 +244,3 @@ window.PORTFOLIO = {
     startVisibleFrames();
   }
 })();
-
-
-
-
