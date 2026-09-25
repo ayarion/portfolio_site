@@ -16,7 +16,7 @@ window.PORTFOLIO = {
   ],
   teamProjects: [
     { id: 'mersampo', title: 'mersampo', caption: 'Mercari AI Agent Hackathon 優秀賞受賞', url: 'https://tsukuriba.org/mersampo/', artwork: 'assets/artwork/mersampo.png', alt: 'mersampoのお店、人々、街路樹が並ぶ街並み', width: 1536, height: 1024 },
-    { id: 'businessai-origin-2026', title: 'BusinessAI Hackathon Origin 2026', caption: 'BusinessAI Hackathon Origin 2026 制作', url: 'https://wanpo.tsukuriba.org/', repoUrl: 'https://github.com/ayarion/Origin-AI-Hackathon', artwork: 'assets/artwork/businessai-origin-2026-cutout.png?v=20260925-hero', alt: 'Origin 2026のトップビジュアル', width: 2020, height: 778 }
+    { id: 'businessai-origin-2026', title: 'BusinessAI Hackathon Origin 2026', caption: 'BusinessAI Hackathon Origin 2026 制作', url: 'https://wanpo.tsukuriba.org/', repoUrl: 'https://github.com/ayarion/Origin-AI-Hackathon', artwork: 'assets/artwork/businessai-origin-2026-hero.jpg?v=20260925-hero-jpg', alt: 'Origin 2026のトップビジュアル', width: 2020, height: 778 }
   ]
 };
 
@@ -244,6 +244,7 @@ window.PORTFOLIO = {
     startVisibleFrames();
   }
 })();
+
 
 
 
