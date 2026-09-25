@@ -74,7 +74,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--ink);outline-offset
 .project-description{max-width:32ch;margin:0 0 26px;color:var(--muted);font:400 clamp(15px,1.2vw,17px)/1.8 var(--font-japanese);letter-spacing:.025em;text-wrap:pretty;word-break:keep-all}
 .project-visual--arch{width:min(370px,86%);height:480px;margin-inline:auto;border-radius:49% 49% 0 0 / 34% 34% 0 0;overflow:hidden;-webkit-mask-image:linear-gradient(#000 94%,transparent);mask-image:linear-gradient(#000 94%,transparent)}
 .project-visual--arch img{width:100%;height:auto}
-.project--businessai-origin-2026 .project-visual{width:min(100%,560px);margin-inline:auto}
+.project--businessai-origin-2026 .project-visual{width:min(84%,470px);margin-inline:auto}
 .project--mersampo{min-height:490px}
 .team{border-top:1px solid var(--line);margin-top:42px}
 .footer-content{position:relative;display:grid;grid-template-columns:1fr 1px 1fr;gap:72px;padding:68px 64px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
