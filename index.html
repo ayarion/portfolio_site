@@ -89,28 +89,15 @@
       introWatchFrame = requestAnimationFrame(watchIntroPaint);
     }
   </script>
-  <link rel="stylesheet" href="style.css?v=20260926-sanpo-dog-smaller">
-  <script defer src="script.js?v=20260925-sanpo-dog"></script>
+  <link rel="stylesheet" href="style.css?v=20261005-pixel-dog">
+  <link rel="preload" href="assets/pixel-chihuahua-actions.png?v=20261005" as="image">
+  <script defer src="loading-dog.js?v=20261005"></script>
+  <script defer src="script.js?v=20261005-pixel-dog"></script>
 </head>
 <body>
   <div class="opening" id="opening" aria-hidden="true">
-    <div class="opening-drapes" aria-hidden="true">
-      <div class="opening-curtain opening-curtain--left"><div class="opening-cloth"><span class="opening-folds"></span></div></div>
-      <div class="opening-curtain opening-curtain--right"><div class="opening-cloth"><span class="opening-folds"></span></div></div>
-    </div>
-    <div class="opening-center" aria-hidden="true">
-      <div class="opening-seal">
-        <div class="opening-aura"></div>
-        <div class="opening-orbit opening-orbit--one"></div>
-        <div class="opening-orbit opening-orbit--two"></div>
-        <div class="opening-track-orbit"><span class="opening-star"><span class="spark"></span></span></div>
-        <p class="opening-word"><span>a</span><span>y</span><span>a</span><span>r</span><span>i</span><span>o</span><span>n</span></p>
-      </div>
-      <p class="opening-caption">A LITTLE SPARK</p>
-      <div class="opening-track"><span></span></div>
-    </div>
+    <div class="opening-dog" role="img" aria-label="時間に合わせて過ごすチワワ"><canvas width="96" height="96" hidden aria-hidden="true"></canvas></div>
     <p class="sr-only" role="status">ポートフォリオを準備しています。</p>
-    <button class="opening-skip" type="button" aria-label="オープニングをスキップ">SKIP INTRO <span aria-hidden="true">↗</span></button>
   </div>
   <a class="skip-link" href="#about">メインコンテンツへ移動</a>
   <header class="site-header">

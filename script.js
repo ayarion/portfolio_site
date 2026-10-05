@@ -144,8 +144,8 @@ window.PORTFOLIO = {
     // Only font readiness is awaited; offscreen lazy images never delay entry.
     const minimumMs = 1500;
     const readinessLimitMs = 2600;
-    // Single duration token shared with the fabric animation; no timeout/CSS drift.
-    const exitMs = parseFloat(getComputedStyle(opening).getPropertyValue('--curtain-duration')) || 1200;
+    // Match the short fade of the pixel-dog overlay.
+    const exitMs = 400;
     let leaving = false;
     let removed = false;
     let fontsReady = false;
@@ -221,12 +221,12 @@ window.PORTFOLIO = {
     }
     function onPageShow(event) { if (event.persisted) finish(true); }
     function onMotionChange() { if (leaving) finish(true); }
-    opening.querySelector('.opening-skip').addEventListener('click', event => finish(event.detail === 0));
-    // Absorb the wheel gesture (and its inertia) while the curtain opens. Scrolling
+    opening.addEventListener('click', () => finish());
+    // Absorb the wheel gesture (and its inertia) while the overlay fades. Scrolling
     // the actual page starts only with a new gesture after the title is visible.
     opening.addEventListener('wheel', event => { event.preventDefault(); finish(); }, { passive: false });
     // Minor finger movement must not swallow the introduction on phones.
-    // Touch scrolling is contained by CSS; the visible SKIP button remains usable.
+    // Touch scrolling is contained by CSS; a tap dismisses the overlay.
     document.addEventListener('keydown', onKey);
     document.addEventListener('visibilitychange', onVisibility);
     window.addEventListener('pageshow', onPageShow);
@@ -236,11 +236,7 @@ window.PORTFOLIO = {
     const fontReadiness = document.fonts ? document.fonts.ready.catch(error => {
       console.error('オープニングのフォント読み込みを確認してください。', error);
     }) : Promise.resolve();
-    fontReadiness.then(() => { fontsReady = true; });
+    Promise.all([fontReadiness, window.portfolioDogReady || Promise.resolve()]).then(() => { fontsReady = true; });
     startVisibleFrames();
   }
 })();
-
-
-
-
