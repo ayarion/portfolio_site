@@ -1,5 +1,5 @@
 /* 差し替え用データ。個人制作は名前・画像・URLのみ、チーム制作はcaptionも表示。
- * artwork: 作品画像。Kinto-Logはアーチ型、さんぽは背景透過のイラストです。
+ * artwork: 作品画像。Kinto-Logはアーチ型、わんぽは背景透過のイラストです。
  * action: 'download' はtogameだけ。URLは指定されたApp Storeのページです。
  * email: CONTACTのメールリンク。caption: チーム制作の見出し下の一言。
  */
@@ -7,7 +7,7 @@ window.PORTFOLIO = {
   name: 'ayarion',
   x: 'https://x.com/lavien_kan',
   email: 'ayarionpc@gmail.com',
-  skills: ['HTML', 'CSS', 'JavaScript', 'Python', 'C'],
+  skills: ['HTML', 'CSS', 'JavaScript', 'TypeScript', 'React', 'Python', 'C'],
   projects: [
     { id: 'togame', title: 'togame', url: 'https://apps.apple.com/jp/app/sns%E3%82%92%E3%82%AD%E3%83%A3%E3%83%A9%E3%81%8C%E3%83%88%E3%82%AC%E3%83%A1%E3%82%8B/id6811971132', action: 'download', artwork: 'assets/artwork/togame-repaired.png', alt: 'togameの青・黄・紫・ピンクのキャラクターとロゴ', width: 1536, height: 1024 },
     { id: 'ojimate', title: 'OjiMate', url: 'https://tsukuriba.org/OjiMate/', artwork: 'assets/artwork/ojimate.png', alt: 'OjiMateのおじさんと猫、ベンチ', width: 1536, height: 1024 },
@@ -15,7 +15,7 @@ window.PORTFOLIO = {
   ],
   teamProjects: [
     { id: 'mersampo', title: 'mersampo', caption: 'Mercari AI Agent Hackathon 優秀賞受賞', url: 'https://tsukuriba.org/mersampo/', artwork: 'assets/artwork/mersampo.png', alt: 'mersampoのお店、人々、街路樹が並ぶ街並み', width: 1536, height: 1024 },
-    { id: 'businessai-origin-2026', title: 'さんぽ', caption: 'BusinessAI Hackathon Origin 2026 制作', url: 'https://wanpo.tsukuriba.org/', artwork: 'assets/artwork/sanpo-dog.webp', alt: 'さんぽの犬のイラスト', width: 1254, height: 1254 }
+    { id: 'businessai-origin-2026', title: 'わんぽ', caption: 'BusinessAI Hackathon Origin 2026 制作', url: 'https://wanpo.tsukuriba.org/', artwork: 'assets/artwork/sanpo-dog.webp', alt: 'わんぽの犬のイラスト', width: 1254, height: 1254 }
   ]
 };
 
@@ -142,14 +142,15 @@ window.PORTFOLIO = {
     // Count visible time only, starting after the first paint. Mobile browsers
     // may load in a hidden tab; neither the clock nor CSS motion advances there.
     // Only font readiness is awaited; offscreen lazy images never delay entry.
-    const minimumMs = 1500;
-    const readinessLimitMs = 2600;
+    const minimumMs = 2500;
+    const readinessLimitMs = 10000;
     // Match the short fade of the pixel-dog overlay.
-    const exitMs = 400;
+    const exitMs = 750;
     let leaving = false;
     let removed = false;
-    let fontsReady = false;
+    let contentReady = false;
     let visibleMs = 0;
+    let dogVisibleMs = 0;
     let lastFrame = null;
     let frame;
     let exitTimer;
@@ -184,17 +185,21 @@ window.PORTFOLIO = {
       leaving = true;
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
       cancelAnimationFrame(frame);
-      root.setAttribute('data-opening', 'active');
+      root.setAttribute('data-opening', 'leaving');
       opening.classList.add('is-leaving');
       exitTimer = setTimeout(removeOpening, motionPreference.matches ? 150 : exitMs);
     }
     function tick(now) {
       if (removed || leaving || document.hidden) return;
-      if (lastFrame !== null) visibleMs += now - lastFrame;
+      if (lastFrame !== null) {
+        const elapsed = now - lastFrame;
+        visibleMs += elapsed;
+        if (contentReady && opening.querySelector('canvas')?.dataset.ready === 'true') dogVisibleMs += elapsed;
+      }
       lastFrame = now;
       root.setAttribute('data-opening', 'active');
-      const duration = fontsReady ? (motionPreference.matches ? 600 : minimumMs) : readinessLimitMs;
-      if (visibleMs >= duration) finish();
+      if (contentReady && opening.querySelector('canvas')?.dataset.ready !== 'true') finish(true);
+      else if (dogVisibleMs >= (motionPreference.matches ? 600 : minimumMs) || visibleMs >= readinessLimitMs) finish();
       else frame = requestAnimationFrame(tick);
     }
     function startVisibleFrames() {
@@ -236,7 +241,7 @@ window.PORTFOLIO = {
     const fontReadiness = document.fonts ? document.fonts.ready.catch(error => {
       console.error('オープニングのフォント読み込みを確認してください。', error);
     }) : Promise.resolve();
-    Promise.all([fontReadiness, window.portfolioDogReady || Promise.resolve()]).then(() => { fontsReady = true; });
+    Promise.all([fontReadiness, window.portfolioDogReady || Promise.resolve()]).then(() => { contentReady = true; });
     startVisibleFrames();
   }
 })();

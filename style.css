@@ -91,18 +91,31 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--ink);outline-offset
    The fabric wrapper itself extends above/below it, with no parent clipping.
    Safe-area padding belongs to controls, never to the edge-to-edge fabric. */
 /* A small time-of-day pixel Chihuahua on a soft gradient. */
-.opening{display:none;position:fixed;inset:0;z-index:20;overflow:hidden;isolation:isolate;touch-action:none;overscroll-behavior:none;background:var(--paper);transition:opacity 400ms ease}
+.opening{display:none;position:fixed;inset:0;z-index:20;overflow:hidden;isolation:isolate;touch-action:none;overscroll-behavior:none;background:var(--paper);transition:opacity 750ms ease}
 .opening::before{content:"";position:absolute;inset:-15%;z-index:-1;background:radial-gradient(ellipse at 12% 35%,#bbd8dfb3,transparent 60%),radial-gradient(ellipse at 80% 20%,#ecc2cf91,transparent 58%),radial-gradient(ellipse at 90% 82%,#f3c8a799,transparent 62%),radial-gradient(ellipse at 20% 95%,#d2ddb966,transparent 58%),var(--paper);filter:blur(45px)}
 html[data-opening],html[data-opening] body{background-color:var(--paper);overscroll-behavior:none}
 html[data-opening]{overflow:hidden;scroll-behavior:auto;overflow-anchor:none}
 html[data-opening] body{position:fixed;top:0;left:0;right:0;width:100%;overflow:hidden}
 html[data-opening] .opening{display:grid;place-items:center}
 html[data-opening] main,html[data-opening] .site-header,html[data-opening] .skip-link{pointer-events:none}
+html[data-opening] main,html[data-opening] .site-header{transition:opacity 750ms ease}
+html[data-opening="pending"] main,html[data-opening="pending"] .site-header,html[data-opening="active"] main,html[data-opening="active"] .site-header,html[data-opening="paused"] main,html[data-opening="paused"] .site-header{opacity:0}
+html[data-opening="leaving"] main,html[data-opening="leaving"] .site-header{opacity:1}
 .opening-dog,.opening-dog canvas{width:144px;height:144px}
 .opening-dog canvas{display:block;image-rendering:pixelated}
 .opening-dog canvas[hidden]{display:none}
+.opening-center{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;position:relative;z-index:1}
+.opening-status{height:20px;color:var(--ink);font:400 13px/20px var(--font-body);letter-spacing:.16em;padding-left:.16em}
+.opening-dots{display:inline-flex;letter-spacing:0}
+.opening-dots span{animation:opening-dot 1.2s ease-in-out infinite;opacity:.3}
+.opening-dots span:nth-child(2){animation-delay:.2s}
+.opening-dots span:nth-child(3){animation-delay:.4s}
+.opening-progress{width:128px;height:2px;overflow:hidden;background:#24232225;border-radius:999px}
+.opening-progress span{display:block;width:38%;height:100%;background:var(--ink);border-radius:inherit;animation:opening-scan 1.5s ease-in-out infinite}
+@keyframes opening-dot{50%{opacity:1}}
+@keyframes opening-scan{0%{transform:translateX(-110%)}100%{transform:translateX(365%)}}
 .opening.is-leaving{opacity:0;pointer-events:none}
-@media(prefers-reduced-motion:reduce){.opening{transition:opacity 150ms linear}}
+@media(prefers-reduced-motion:reduce){.opening{transition:opacity 150ms linear}.opening-dots span,.opening-progress span{animation:none;opacity:1}.opening-progress span{width:100%;transform:none}}
 
 /* Two layers morph with transform/opacity. Native links open immediately. */
 .pressable{position:relative;isolation:isolate;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:46px;padding:9px 18px;font:400 17px/1.55 var(--font-body);text-decoration:none;cursor:pointer;transition:transform var(--press-duration) var(--ease-out)}
@@ -193,10 +206,8 @@ html[data-opening] main,html[data-opening] .site-header,html[data-opening] .skip
   .hero::after,.opening::after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background:var(--screen-edge-blend)}
   .opening-center{position:relative;z-index:1}
   .opening-skip{z-index:1}
-  /* This veil stays on the viewport, not on either moving/oversized curtain.
-     Hand off to the hero's matching edge treatment during the final 240ms. */
-  .opening::after{transition:opacity 240ms var(--ease-out)}
-  .opening.is-leaving::after{opacity:0;transition-delay:calc(var(--curtain-duration) - 240ms)}
+  .opening::after{transition:opacity 750ms ease}
+  .opening.is-leaving::after{opacity:0}
   body::before{-webkit-mask-image:linear-gradient(transparent,#000 var(--screen-edge-fade),#000 calc(100% - var(--screen-edge-fade)),transparent);mask-image:linear-gradient(transparent,#000 var(--screen-edge-fade),#000 calc(100% - var(--screen-edge-fade)),transparent)}
 }
 @media(max-width:380px){
@@ -209,6 +220,7 @@ html[data-opening] main,html[data-opening] .site-header,html[data-opening] .skip
 }
 @media(prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
+  .opening,html[data-opening] main,html[data-opening] .site-header{transition-duration:150ms}
   .opening::after{transition:none}
   .opening.is-leaving::after{opacity:1}
   .section-reveal,.section-reveal[data-pending]{transform:none}
@@ -216,4 +228,3 @@ html[data-opening] main,html[data-opening] .site-header,html[data-opening] .skip
   .pressable,.pressable::before,.pressable::after,.download-icon,.link-arrow,.nav-link::after{transition:opacity 150ms linear}
   .pressable:active,.pressable.is-pressed,.pressable::after,.pressable:hover .link-arrow,.pressable .link-arrow,.pressable .download-icon{transform:none!important}
 }
-

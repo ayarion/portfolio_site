@@ -1,0 +1,10 @@
+{
+  "name": "tsukuriba-portfolio",
+  "account_id": "7a7329913070eeb2418e94a2799b3897",
+  "compatibility_date": "2026-10-01",
+  "workers_dev": true,
+  "preview_urls": true,
+  "assets": {
+    "directory": "./dist"
+  }
+}
