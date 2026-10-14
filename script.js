@@ -150,7 +150,7 @@ window.PORTFOLIO = {
     let removed = false;
     let contentReady = false;
     let visibleMs = 0;
-    let dogVisibleMs = 0;
+    let readyVisibleMs = 0;
     let lastFrame = null;
     let frame;
     let exitTimer;
@@ -194,12 +194,13 @@ window.PORTFOLIO = {
       if (lastFrame !== null) {
         const elapsed = now - lastFrame;
         visibleMs += elapsed;
-        if (contentReady && opening.querySelector('canvas')?.dataset.ready === 'true') dogVisibleMs += elapsed;
+        if (contentReady) readyVisibleMs += elapsed;
       }
       lastFrame = now;
       root.setAttribute('data-opening', 'active');
-      if (contentReady && opening.querySelector('canvas')?.dataset.ready !== 'true') finish(true);
-      else if (dogVisibleMs >= (motionPreference.matches ? 600 : minimumMs) || visibleMs >= readinessLimitMs) finish();
+      // Keep the status/progress visible even when the dog image fails. Reduced
+      // motion changes animation only, not whether the loading screen is shown.
+      if (readyVisibleMs >= minimumMs || visibleMs >= readinessLimitMs) finish();
       else frame = requestAnimationFrame(tick);
     }
     function startVisibleFrames() {
@@ -229,7 +230,11 @@ window.PORTFOLIO = {
     opening.addEventListener('click', () => finish());
     // Absorb the wheel gesture (and its inertia) while the overlay fades. Scrolling
     // the actual page starts only with a new gesture after the title is visible.
-    opening.addEventListener('wheel', event => { event.preventDefault(); finish(); }, { passive: false });
+    opening.addEventListener('wheel', event => {
+      event.preventDefault();
+      // Trackpad inertia must not dismiss the opening before it can be seen.
+      if (readyVisibleMs >= minimumMs) finish();
+    }, { passive: false });
     // Minor finger movement must not swallow the introduction on phones.
     // Touch scrolling is contained by CSS; a tap dismisses the overlay.
     document.addEventListener('keydown', onKey);
